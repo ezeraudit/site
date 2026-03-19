@@ -1,0 +1,452 @@
+---
+import Layout from "../layouts/Layout.astro";
+import TextMarquee from "../components/TextMarquee.astro";
+import Button from "../components/Button.astro";
+
+const values = [
+  {
+    title: "Innovation",
+    text: "We constantly push the boundaries of what's possible, seeking new ways to solve complex problems and deliver value.",
+  },
+  {
+    title: "Clarity",
+    text: "Clear communication and simple design are at the heart of everything we do. We cut through the noise.",
+  },
+  {
+    title: "Speed",
+    text: "We value execution and momentum. Moving fast allows us to learn, adapt, and stay ahead in a rapidly changing world.",
+  },
+  {
+    title: "Impact",
+    text: "Every feature and every line of code is measured by the real-world impact it has on our users and their success.",
+  },
+];
+---
+
+<Layout title="About Us">
+  <section class="intro">
+    <div class="u-container">
+      <h1 class="u-heading large-title" data-sy-reveal="blurIn">
+        Redefining the Future of <span class="brand-color">Execution.</span>
+      </h1>
+      <p class="u-text intro-text" data-sy-reveal="slideUp">
+        We are a collective of thinkers, designers, and engineers dedicated to 
+        building tools that empower teams to turn vision into reality with 
+        unprecedented speed and clarity.
+      </p>
+    </div>
+  </section>
+
+  <section class="story">
+    <div id="story-canvas" class="story-canvas"></div>
+    <div class="u-container">
+      <div class="u-row align-items-center">
+        <div class="u-col-6 u-col-md-12 story-content">
+          <h2 class="u-heading section-title" data-sy-reveal="words">Our Story</h2>
+          <div class="u-text story-text" data-sy-reveal="fade">
+            <p>
+              Founded in 2024, our mission has always been simple: eliminate the friction 
+              between idea and impact. We saw teams struggling with bloated tools and 
+              fragmented workflows, and we knew there was a better way.
+            </p>
+            <p>
+              Through rigorous design and a deep focus on user experience, we've crafted 
+              a platform that doesn't just manage work—it accelerates it.
+            </p>
+          </div>
+        </div>
+        <div class="u-col-6 u-col-md-12" data-sy-reveal="scaleUp">
+          <div class="image-placeholder">
+            <img src="/image-1.jpg" alt="Our Story" class="story-image" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="values">
+    <div class="u-container">
+      <h2 class="u-heading section-title center" data-sy-reveal="blurIn">Our Core Values</h2>
+      <div class="u-row">
+        {values.map((value, i) => (
+          <div class="u-col-3 u-col-md-6 u-col-sm-12">
+            <div class="value-card" data-sy-reveal="slideUp" style={`--d: ${i * 0.1}s`}>
+              <h3 class="u-heading card-title">{value.title}</h3>
+              <p class="u-text card-text">{value.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="marquee-section">
+    <TextMarquee
+      class="about-marquee"
+      texts={[
+        "Innovation First",
+        "Clarity in Design",
+        "Built for the Future",
+        "Empowering Creators",
+      ]}
+    />
+  </section>
+
+  <section class="cta-section" id="cta-section">
+    <canvas id="cta-cursor-canvas" class="cta-cursor-canvas"></canvas>
+    <div class="u-container">
+      <div class="cta-box" data-sy-reveal="scaleUp">
+        <h2 class="u-heading cta-title" data-sy-reveal="blurIn">Join our journey.</h2>
+        <p class="u-text cta-subtitle" data-sy-reveal="slideUp">Together, we can build something extraordinary and redefine the way teams work.</p>
+        <Button title="Get Started" url="#" arrow />
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  section {
+    padding: 8rem 0;
+  }
+
+  .align-items-center {
+    align-items: center;
+  }
+
+  /* Intro Section */
+  .intro {
+    padding-top: 12rem;
+    text-align: center;
+  }
+
+  .large-title {
+    --fs: 5rem;
+    --lh: 1.1;
+    max-width: 15em;
+    margin: 0 auto 2rem;
+
+    @media (--mq-phone) {
+      --fs: 3rem;
+    }
+  }
+
+  .brand-color {
+    color: var(--color-brand-1);
+  }
+
+  .intro-text {
+    --fs: 1.5rem;
+    max-width: 35em;
+    margin: 0 auto;
+    opacity: 0.8;
+
+    @media (--mq-phone) {
+      --fs: 1.2rem;
+    }
+  }
+
+  /* Story Section */
+  .story {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .story-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .story-content {
+    @media (--mq-tablet) {
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+  }
+
+  .section-title {
+    --fs: 3rem;
+    margin-bottom: 2rem;
+
+    @media (--mq-phone) {
+      --fs: 2.25rem;
+    }
+  }
+
+  .center {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  .story-text p {
+    margin-bottom: 1.5rem;
+  }
+
+  .image-placeholder {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--color-brand-3);
+    border-radius: 2rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .story-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    transition: transform 0.5s var(--ease-out-expo);
+
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+
+  .image-placeholder::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(var(--rgb-brand-1), 0.1), transparent);
+  }
+
+  /* Values Section */
+  .value-card {
+    height: 100%;
+    padding: 3rem;
+    background: rgba(var(--rgb-white), 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(var(--rgb-brand-1), 0.1);
+    border-radius: 1.5rem;
+    transition: transform 0.3s var(--ease-out-expo), border-color 0.3s;
+    animation-delay: var(--d);
+
+    &:hover {
+      transform: translateY(-0.5rem);
+      border-color: var(--color-brand-1);
+    }
+  }
+
+  .card-title {
+    --fs: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--color-brand-1);
+  }
+
+  .card-text {
+    --fs: var(--font-size-sm);
+  }
+
+  /* Marquee Section */
+  .marquee-section {
+    padding: 4rem 0;
+    background: var(--color-brand-1);
+    color: var(--color-brand-3);
+  }
+
+  .about-marquee {
+    --c: var(--color-brand-3);
+  }
+
+  /* CTA Section */
+  .cta-section {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    z-index: 1;
+    min-height: 400px; /* fallback height */
+  }
+
+  .cta-cursor-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .cta-box {
+    position: relative;
+    z-index: 1;
+    background: rgba(var(--rgb-brand-3), 0.3);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(var(--rgb-white), 0.1);
+    padding: 6rem 2rem;
+    border-radius: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .cta-title {
+    --fs: 4rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-white);
+
+    @media (--mq-phone) {
+      --fs: 2.5rem;
+    }
+  }
+
+  .cta-subtitle {
+    --fs: 1.25rem;
+    max-width: 30em;
+    color: var(--color-white);
+    opacity: 0.8;
+    margin-bottom: 1rem;
+
+    @media (--mq-phone) {
+      --fs: 1rem;
+    }
+  }
+</style>
+
+<script>
+  import * as THREE from 'three';
+
+  function initStoryBackground() {
+    console.log('initStoryBackground called');
+    const container = document.getElementById('story-canvas');
+    if (!container) return;
+
+    // Clear existing content
+    container.innerHTML = '';
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight || 1, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const geometry = new THREE.IcosahedronGeometry(1, 15);
+    const material = new THREE.MeshPhysicalMaterial({
+      color: 0x8d73f5,
+      metalness: 0,
+      roughness: 0.2,
+      transmission: 0.8,
+      thickness: 0.5,
+      transparent: true,
+      opacity: 0.3,
+    });
+
+    const particles = [];
+    for (let i = 0; i < 4; i++) {
+      const mesh = new THREE.Mesh(geometry, material.clone());
+      const scale = 0.5 + Math.random() * 1.5;
+      mesh.scale.set(scale, scale, scale);
+      mesh.position.set(
+        (Math.random() - 0.5) * 10,
+        (Math.random() - 0.5) * 6,
+        (Math.random() - 0.5) * 4
+      );
+      
+      const colors = [0x8d73f5, 0xec77fd, 0x8caf31];
+      mesh.material.color.set(colors[Math.floor(Math.random() * colors.length)]);
+      
+      group.add(mesh);
+      particles.push(mesh);
+    }
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const pointLight = new THREE.PointLight(0xffffff, 1);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
+
+    camera.position.z = 8;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      particles.forEach((p, i) => {
+        p.rotation.x += 0.0005 * (i % 2 === 0 ? 1 : -1);
+        p.rotation.y += 0.0008 * (i % 3 === 0 ? 1 : -1);
+        p.position.y += Math.sin(Date.now() * 0.0005 + i) * 0.001;
+        p.position.x += Math.cos(Date.now() * 0.0005 + i) * 0.001;
+      });
+
+      group.rotation.y = Math.sin(Date.now() * 0.0001) * 0.03;
+      group.rotation.x = Math.cos(Date.now() * 0.0001) * 0.03;
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight || 1;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+  }
+
+  function init() {
+    setTimeout(() => {
+      initStoryBackground();
+    }, 100);
+  }
+
+  if (document.readyState === 'complete') {
+    init();
+  } else {
+    window.addEventListener('load', init);
+  }
+
+  document.addEventListener('astro:page-load', init);
+</script>
+
+<script is:inline type="module">
+  import TubesCursor from "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js"
+
+  function initCTA() {
+    const el = document.getElementById('cta-cursor-canvas')
+    if (!el) return
+
+    const app = TubesCursor(el, {
+      tubes: {
+        colors: ["#f967fb", "#53bc28", "#6958d5"],
+        lights: {
+          intensity: 200,
+          colors: ["#83f36e", "#fe8a2e", "#ff008a", "#60aed5"]
+        }
+      }
+    })
+
+    el.addEventListener('click', () => {
+      const colors = randomColors(3)
+      const lightsColors = randomColors(4)
+      app.tubes.setColors(colors)
+      app.tubes.setLightsColors(lightsColors)
+    })
+  }
+
+  function randomColors (count) {
+    return new Array(count)
+        .fill(0)
+        .map(() => "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'))
+  }
+
+  if (document.readyState === 'complete') {
+    initCTA()
+  } else {
+    window.addEventListener('load', initCTA)
+  }
+
+  // Support for Astro view transitions
+  document.addEventListener('astro:page-load', initCTA)
+</script>
