@@ -8,6 +8,13 @@ import {
 // https://astro.build/config
 export default defineConfig({
   scopedStyleStrategy: 'where',
+  i18n: {
+    defaultLocale: 'zh',
+    locales: ['zh', 'en'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
   fonts: [
     {
       provider: fontProviders.google(),

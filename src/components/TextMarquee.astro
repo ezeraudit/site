@@ -21,6 +21,7 @@ const { texts, direction, class: className = "" } = Astro.props;
     display: block;
     position: relative;
     overflow: hidden;
+    padding: 1rem 0;
     width: 100vw;
     max-width: 100%;
     opacity: 0;
@@ -48,6 +49,7 @@ const { texts, direction, class: className = "" } = Astro.props;
     @extend %u-text;
     --fs: 4rem;
     --fw: 600;
+    --lh: 1.2;
 
     white-space: nowrap;
     display: flex;

@@ -1,7 +1,9 @@
 [data-sy-reveal="lines"],
 [data-sy-reveal="words"] {
-  opacity: 0;
-  font-kerning: none;
+  display: block;
+  overflow: hidden;
+  padding: 0.2em 0;
+  margin: -0.2em 0;
   text-rendering: optimizespeed;
 
   &.is-in {
@@ -10,7 +12,7 @@
 
   .i-mask {
     display: inline-block;
-    clip-path: inset(8% -10% -8%);
+    clip-path: inset(-10% -10% -10%);
   }
 
   .i {
@@ -21,7 +23,7 @@
 
   &.u-heading {
     .i-mask {
-      clip-path: inset(11% -1% -11%);
+      clip-path: inset(-10% -1% -10%);
     }
   }
 }
@@ -31,6 +33,7 @@
     display: block;
   }
 }
+
 [data-sy-reveal] {
   opacity: 0;
 
@@ -38,4 +41,3 @@
     opacity: 1;
   }
 }
-
