@@ -33,6 +33,8 @@
   --color-brand-4: rgb(var(--rgb-brand-4));
   --color-brand-5: rgb(var(--rgb-brand-5));
   --color-bg: #f7f8f2;
+  --color-surface: rgb(var(--rgb-white));
+  --color-surface-translucent: rgba(var(--rgb-white), 0.95);
 
   /* easings */
   --ease-in-quad: cubic-bezier(0.55, 0.085, 0.68, 0.53);
@@ -70,6 +72,19 @@
   }
 }
 
+[data-theme="dark"] {
+  --rgb-text: 255, 255, 255;
+  --rgb-text-alt: 153, 161, 179;
+  --rgb-brand-1: 162, 142, 247;
+  --rgb-brand-2: 43, 49, 29;
+  --rgb-brand-3: 31, 26, 61;
+  --rgb-brand-4: 46, 54, 34;
+  --rgb-brand-5: 172, 214, 60;
+  --color-bg: #0d1117;
+  --color-surface: #1e1e24;
+  --color-surface-translucent: rgba(30, 30, 36, 0.95);
+}
+
 html,
 body {
   margin: 0;
@@ -85,4 +100,16 @@ a {
 
 button {
   color: currentcolor;
+}
+
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *:before,
+html.theme-transition *:after {
+  transition: background-color 0.5s var(--ease-out-expo), 
+              color 0.5s var(--ease-out-expo), 
+              border-color 0.5s var(--ease-out-expo), 
+              fill 0.5s var(--ease-out-expo), 
+              stroke 0.5s var(--ease-out-expo) !important;
+  transition-delay: 0s !important;
 }

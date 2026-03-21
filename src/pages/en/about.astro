@@ -228,6 +228,11 @@ const values = [
     transition: transform 0.3s var(--ease-out-expo), border-color 0.3s;
     animation-delay: var(--d);
 
+    :global([data-theme="dark"]) & {
+      background: rgba(30, 30, 36, 0.5);
+      border-color: rgba(var(--rgb-brand-1), 0.2);
+    }
+
     &:hover {
       transform: translateY(-0.5rem);
       border-color: var(--color-brand-1);
@@ -280,6 +285,10 @@ const values = [
     backdrop-filter: blur(6px);
     border: 1px solid rgba(var(--rgb-white), 0.1);
     padding: 6rem 2rem;
+    
+    :global([data-theme="dark"]) & {
+      background: rgba(236, 231, 253, 0.3);
+    }
     border-radius: 3rem;
     display: flex;
     flex-direction: column;
