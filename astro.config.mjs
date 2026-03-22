@@ -3,10 +3,12 @@ import {
   defineConfig,
   fontProviders,
 } from "astro/config";
+import sitemap from "@astrojs/sitemap";
 
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://audit.ezer.cc/',
   scopedStyleStrategy: 'where',
   i18n: {
     defaultLocale: 'zh',
@@ -29,4 +31,5 @@ export default defineConfig({
       weights: ["100 900"],
     },
   ],
+  integrations: [sitemap()],
 });

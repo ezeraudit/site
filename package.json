@@ -1,7 +1,7 @@
 {
-    "name": "viio",
+    "name": "ezer",
     "type": "module",
-    "version": "0.0.1",
+    "version": "1.0.1",
     "scripts": {
         "dev": "astro dev",
         "build": "astro build",
@@ -9,6 +9,7 @@
         "astro": "astro"
     },
     "dependencies": {
+        "@astrojs/sitemap": "^3.7.1",
         "@csstools/postcss-global-data": "^3.0.0",
         "@pmndrs/vanilla": "^1.25.0",
         "astro": "^6.0.5",

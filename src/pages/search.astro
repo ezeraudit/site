@@ -353,11 +353,20 @@ const periods = [
   }
 </style>
 
+</style>
+
 <script>
   // Custom selection values
   let selectedStock = null;
   let selectedYear = "2025";
   let selectedPeriod = "full";
+
+  async function getSession() {
+    // @ts-ignore
+    if (!window.auth) return null;
+    // @ts-ignore
+    return window.auth.getSession();
+  }
 
   const stockInput = document.getElementById('stock-input');
   const resultsContainer = document.getElementById('search-results');
@@ -490,7 +499,7 @@ const periods = [
     }
   });
 
-  checkBtn.addEventListener('click', () => {
+  checkBtn.addEventListener('click', async () => {
     if (!selectedStock) {
       alert('请先输入并选择一个公司或股票代码');
       return;
@@ -502,11 +511,17 @@ const periods = [
     const uid = Math.random().toString(36).substring(7); // Simple UID
     const hash = `${uid}_${timestamp}`;
 
-    // Redirect to check.astro
-    // const baseUrl = window.location.pathname.startsWith('/en') ? '/en/check' : '/check';
-    // However, the request specifically mentioned check.astro?code=...
-    const url = `/check?code=${selectedStock.code}&year=${year}&period=${period}&hash=${hash}`;
-    window.location.href = url;
+    const checkUrl = `/check?code=${selectedStock.code}&year=${year}&period=${period}&hash=${hash}`;
+    
+    // Check session
+    const session = await getSession();
+    if (session) {
+      window.location.href = checkUrl;
+    } else {
+      const lang = window.location.pathname.startsWith('/en') ? 'en/' : '';
+      const loginUrl = `https://account.ezer.cc/${lang}login/?redirect=${encodeURIComponent(window.location.origin + checkUrl)}`;
+      window.location.href = loginUrl;
+    }
   });
 
   // Handle Enter key

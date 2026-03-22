@@ -2,6 +2,10 @@
 import Button from "./Button.astro";
 import Logo from "../assets/logo.svg";
 import type { Link } from "../types";
+import { getLangFromUrl, useTranslations } from "../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 
 interface Props {
   logoUrl: string;
@@ -15,7 +19,13 @@ const { logoUrl, logoAlt, link1, link2, links } = Astro.props;
 ---
 
 <header>
-  <sy-head>
+  <sy-head
+    data-lang={lang}
+    data-text-login={t("nav.signin")}
+    data-text-me={t("nav.me")}
+    data-url-login={`https://account.ezer.cc/${lang === "en" ? "en/" : ""}login/`}
+    data-url-me={`https://account.ezer.cc/${lang === "en" ? "en/" : ""}`}
+  >
     <div class="inner u-container">
       <div class="wrapper">
         <a class="logo" href={logoUrl}>
@@ -426,4 +436,47 @@ const { logoUrl, logoAlt, link1, link2, links } = Astro.props;
   }
 
   customElements.define("sy-head", Header);
+</script>
+
+<script>
+  (function () {
+    async function initLoginAuth() {
+      // @ts-ignore
+      if (!window.auth) return;
+      // @ts-ignore
+      const session = await window.auth.getSession();
+
+      const syHead = document.querySelector("sy-head");
+      if (!syHead) return;
+
+      const data = (syHead as HTMLElement).dataset;
+      const loginBtn = syHead.querySelector(".buttons .btn");
+      if (!loginBtn) return;
+
+      const loginTextSpan = loginBtn.querySelector("span > span:last-child");
+      const hoverTextSpan = loginBtn.querySelector("span > span:first-child");
+
+      if (session) {
+        // Logged in: show "Me"
+        if (loginTextSpan) loginTextSpan.textContent = data.textMe || "";
+        if (hoverTextSpan) hoverTextSpan.textContent = data.textMe || "";
+        loginBtn.setAttribute("href", data.urlMe || "");
+        loginBtn.setAttribute("target", "_blank");
+      } else {
+        // Not logged in: show "Login" with redirect
+        const redirectUrl = `${data.urlLogin}?redirect=${encodeURIComponent(window.location.href)}`;
+        if (loginTextSpan) loginTextSpan.textContent = data.textLogin || "";
+        if (hoverTextSpan) hoverTextSpan.textContent = data.textLogin || "";
+        loginBtn.setAttribute("href", redirectUrl);
+        loginBtn.removeAttribute("target");
+      }
+    }
+
+    // Run on bucket load
+    if (document.readyState === "complete") {
+      initLoginAuth();
+    } else {
+      window.addEventListener("load", initLoginAuth);
+    }
+  })();
 </script>
