@@ -1,0 +1,51 @@
+{
+  "final_status": "PASS",
+  "summary": "所有分析卡片中的数据与事实数据及补充数据完全吻合，分析结论符合财务逻辑，未见夸大或超出数据边界的情形。",
+  "challenge_points": [],
+  "resolved_points": [
+    {
+      "target_card_id": "profitability",
+      "rationale": "营业收入、净利润、毛利率及ROE等核心盈利指标与事实数据完全一致。"
+    },
+    {
+      "target_card_id": "solvency",
+      "rationale": "资产、负债总额及资产负债率指标均与事实数据吻合，对于高杠杆原因的推测符合常规财务认知。"
+    },
+    {
+      "target_card_id": "cashflow",
+      "rationale": "各项现金流净额数据准确无误，对造血能力和资金缺口的定性评价与数据表现一致。"
+    },
+    {
+      "target_card_id": "growth",
+      "rationale": "各项增长率指标（全年及单季度营收、净利润）均在补充结构化数据中有明确支撑。"
+    }
+  ],
+  "groups": [
+    "income_statement",
+    "balance_sheet",
+    "cashflow_statement",
+    "key_ratios"
+  ],
+  "source_refs": [
+    {
+      "field": "profitability",
+      "source": "facts.income_statement, facts.key_ratios"
+    },
+    {
+      "field": "solvency",
+      "source": "facts.balance_sheet, facts.key_ratios"
+    },
+    {
+      "field": "cashflow",
+      "source": "facts.cashflow_statement"
+    },
+    {
+      "field": "growth",
+      "source": "supplemental_structured_data.items"
+    }
+  ],
+  "meta": {
+    "auditor_model": "google/gemini-3.1-pro-preview",
+    "confidence_score": 0.98
+  }
+}
