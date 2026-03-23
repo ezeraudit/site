@@ -1,0 +1,854 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getLangFromUrl, useTranslations } from "../i18n/utils";
+import { ui } from "../i18n/ui";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const translations = ui[lang];
+---
+
+<!-- Injected i18n for client-side script -->
+<meta name="check-i18n" content={JSON.stringify(translations)} />
+
+<Layout title={t("check.title")}>
+  <div class="check-page">
+    <div class="u-container">
+      <!-- Page Header -->
+      <div class="check-header">
+        <h1 class="check-title" id="page-title">{t("check.title")}</h1>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-container" id="loading-container">
+        <div class="spinner-wrapper">
+          <div class="spinner"></div>
+          <div class="spinner-ring"></div>
+        </div>
+        <p class="loading-text" id="loading-text">{t("check.loading")}</p>
+        <div class="progress-bar-wrapper">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <p class="progress-label" id="progress-label">0%</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-container hidden" id="error-container">
+        <div class="error-icon">⚠️</div>
+        <p class="error-text" id="error-text">{t("check.error")}</p>
+        <a id="back-link" href={lang === "zh" ? "/search" : "/en/search"} class="back-btn">
+          ← {lang === "zh" ? "返回搜索" : "Back to Search"}
+        </a>
+      </div>
+
+      <!-- Results -->
+      <div class="results-container hidden" id="results-container">
+        <!-- Thought Process (A, B, C) -->
+        <div class="thought-container" id="thought-container">
+          <button class="thought-header" id="thought-toggle" aria-expanded="true">
+            <span class="thought-icon">🧠</span>
+            <span class="thought-title">{t("check.thought")}</span>
+            <span class="thought-arrow"></span>
+          </button>
+          
+          <div class="thought-content" id="thought-content">
+            <div class="thought-grid">
+              <!-- A: Structured Data -->
+              <div class="thought-section section-a">
+                <div class="section-label">数据归一化 (A)</div>
+                <div class="table-wrapper">
+                  <table class="financial-table" id="data-table-a">
+                    <tbody id="data-a-body"></tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <!-- B: Analysis Text -->
+              <div class="thought-section section-b">
+                <div class="section-label">深度分析 (B)</div>
+                <div class="text-output" id="text-b"></div>
+              </div>
+              
+              <!-- C: Auditor Text -->
+              <div class="thought-section section-c">
+                <div class="section-label">风险审计 (C)</div>
+                <div class="text-output" id="text-c"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="summary-container" id="summary-section-container">
+          <h2 class="col-title">{t("check.headline")}</h2>
+          <div class="summary-box">
+            <div id="summary-text" class="text-output"></div>
+            <div id="final-result-text" class="final-result-output hidden"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .check-page {
+    min-height: 100vh;
+    padding: 10vh 1rem 4rem;
+    background: var(--color-bg);
+  }
+
+  /* ── Header ── */
+  .check-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .check-title {
+    font-family: var(--font-roboto-slab);
+    font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+    color: var(--color-text);
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Loading ── */
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 4rem 1rem;
+  }
+
+  .spinner-wrapper {
+    position: relative;
+    width: 64px;
+    height: 64px;
+  }
+
+  .spinner {
+    width: 64px;
+    height: 64px;
+    border: 3px solid rgba(var(--rgb-brand-1), 0.15);
+    border-top-color: var(--color-brand-1);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner-ring {
+    position: absolute;
+    inset: 6px;
+    border: 2px solid rgba(var(--rgb-brand-1), 0.08);
+    border-bottom-color: rgba(var(--rgb-brand-1), 0.5);
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite reverse;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    font-size: 1rem;
+    color: var(--color-text-alt);
+    font-weight: 500;
+  }
+
+  .progress-bar-wrapper {
+    width: min(400px, 80vw);
+    height: 6px;
+    background: rgba(var(--rgb-brand-1), 0.12);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--color-brand-1);
+    border-radius: 999px;
+    transition: width 0.6s var(--ease-out-expo);
+  }
+
+  .progress-label {
+    font-size: 0.85rem;
+    color: var(--color-text-alt);
+  }
+
+  /* ── Error ── */
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 4rem 1rem;
+  }
+
+  .error-icon {
+    font-size: 3rem;
+  }
+
+  .error-text {
+    font-size: 1.1rem;
+    color: var(--color-text);
+    text-align: center;
+  }
+
+  .back-btn {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.6rem 1.6rem;
+    background: var(--color-brand-1);
+    color: var(--color-white);
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s var(--ease-out-expo);
+  }
+
+  .back-btn:hover {
+    filter: brightness(1.1);
+    transform: scale(1.04);
+  }
+
+  /* ── Results Container ── */
+  .results-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* ── Thought Process (Deep Thinking) ── */
+  .thought-container {
+    background: var(--color-surface);
+    border: 1px solid rgba(var(--rgb-brand-1), 0.15);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .thought-header {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(var(--rgb-brand-1), 0.03);
+    border: none;
+    border-bottom: 1px solid rgba(var(--rgb-brand-1), 0.1);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+  }
+
+  .thought-header:hover {
+    background: rgba(var(--rgb-brand-1), 0.06);
+  }
+
+  .thought-icon {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 0 8px rgba(var(--rgb-brand-1), 0.4));
+  }
+
+  .thought-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-brand-1);
+    flex-grow: 1;
+  }
+
+  .thought-arrow {
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid var(--color-brand-1);
+    border-bottom: 2px solid var(--color-brand-1);
+    transform: rotate(-135deg);
+    transition: transform 0.3s;
+    margin-right: 0.5rem;
+  }
+
+  .thought-container.is-collapsed .thought-arrow {
+    transform: rotate(45deg);
+  }
+
+  .thought-container.is-collapsed .thought-content {
+    display: none;
+  }
+
+  .thought-content {
+    padding: 1.2rem;
+  }
+
+  .thought-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+
+  .thought-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-alt);
+    opacity: 0.8;
+  }
+
+  .section-a {
+    grid-column: 1 / 2;
+    border-right: 1px solid rgba(var(--rgb-brand-1), 0.12);
+    padding-right: 1.2rem;
+    overflow-x: auto;
+  }
+
+  .section-b {
+    grid-column: 2 / 3;
+    padding-left: 0.2rem;
+  }
+
+  .section-c {
+    grid-column: 1 / 3;
+    border-top: 1px solid rgba(var(--rgb-brand-1), 0.15);
+    padding-top: 1.2rem;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .thought-grid {
+      grid-template-columns: 1fr;
+    }
+    .section-a, .section-b, .section-c {
+      grid-column: 1 / 2;
+      border-right: none;
+      padding-right: 0;
+      padding-left: 0;
+    }
+    .section-b {
+      border-top: 1px solid rgba(var(--rgb-brand-1), 0.12);
+      padding-top: 1.2rem;
+    }
+  }
+
+  /* ── Data & Text Styles ── */
+  .table-wrapper {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .financial-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    border-top: 2px solid var(--color-brand-1);
+  }
+
+  .financial-table tr {
+    transition: background 0.2s;
+  }
+
+  .financial-table tr:hover {
+    background: rgba(var(--rgb-brand-1), 0.04);
+  }
+
+  .financial-table th {
+    padding: 0.8rem 0.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--color-text-alt);
+    border-bottom: 2px solid rgba(var(--rgb-brand-1), 0.15);
+    background: rgba(var(--rgb-brand-1), 0.02);
+  }
+
+  .financial-table th:last-child {
+    text-align: right;
+  }
+
+  .financial-table td {
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid rgba(var(--rgb-brand-1), 0.08);
+  }
+
+  .data-key {
+    color: var(--color-text-alt);
+    font-weight: 500;
+    font-size: 0.85rem;
+    width: 40%;
+  }
+
+  .data-value {
+    font-family: var(--font-mono, 'Inter', monospace);
+    font-weight: 700;
+    color: var(--color-brand-1);
+    font-size: 1.15rem; /* Larger than B/C */
+    text-align: right;
+    letter-spacing: -0.02em;
+  }
+
+  .numeric {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-output {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--color-text);
+    white-space: pre-wrap;
+    min-height: 1.5em;
+    opacity: 0.9;
+  }
+
+  .text-output::after {
+    content: '';
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--color-brand-1);
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blink 0.8s infinite;
+  }
+
+  .text-output.is-done::after {
+    display: none;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  /* ── Summary Container ── */
+  .summary-container {
+    padding-bottom: 2rem;
+  }
+
+  .col-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-alt);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.8rem;
+  }
+
+  .summary-box {
+    background: var(--color-surface);
+    border: 2px solid var(--color-brand-1);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 24px rgba(var(--rgb-brand-1), 0.12);
+  }
+
+  .final-result-output {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed rgba(var(--rgb-brand-1), 0.2);
+    font-weight: 600;
+    color: var(--color-brand-1);
+    font-size: 1.1rem;
+  }
+
+  /* ── Utility ── */
+  .hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  // ── i18n strings passed from Astro ──
+  const metaEl = document.querySelector('meta[name="check-i18n"]');
+  const i18n = metaEl ? JSON.parse(metaEl.getAttribute('content') || '{}') : {};
+
+  // ── Helper: get lang from URL ──
+  const isEn = window.location.pathname.startsWith('/en');
+  const lang = isEn ? 'en' : 'zh';
+
+  // ── Grab URL params ──
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const year = params.get('year');
+  const period = params.get('period');
+
+  // DOM refs
+  const loadingEl = document.getElementById('loading-container')!;
+  const errorEl = document.getElementById('error-container')!;
+  const resultsEl = document.getElementById('results-container')!;
+  const pageTitleEl = document.getElementById('page-title')!;
+  const loadingTextEl = document.getElementById('loading-text')!;
+  const progressBar = document.getElementById('progress-bar')!;
+  const progressLabel = document.getElementById('progress-label')!;
+  const errorTextEl = document.getElementById('error-text')!;
+
+  const thoughtContainer = document.getElementById('thought-container')!;
+  const thoughtToggle = document.getElementById('thought-toggle')!;
+  const dataA = document.getElementById('data-a-body')!;
+  const textB = document.getElementById('text-b')!;
+  const textC = document.getElementById('text-c')!;
+  const summaryText = document.getElementById('summary-text')!;
+  const finalResultText = document.getElementById('final-result-text')!;
+
+  // Toggle thought process
+  thoughtToggle.addEventListener('click', () => {
+    thoughtContainer.classList.toggle('is-collapsed');
+    thoughtToggle.setAttribute('aria-expanded', String(!thoughtContainer.classList.contains('is-collapsed')));
+  });
+
+  /**
+   * Simple Typewriter effect for streaming feel
+   */
+  class Typewriter {
+    private queue: string[] = [];
+    private isRunning = false;
+    private speed = 15; // ms per char
+
+    constructor(private element: HTMLElement) {}
+
+    write(text: string) {
+      if (!text) return;
+      this.queue.push(...text.split(''));
+      if (!this.isRunning) this.run();
+    }
+
+    private async run() {
+      this.isRunning = true;
+      this.element.classList.remove('is-done');
+      while (this.queue.length > 0) {
+        const char = this.queue.shift();
+        if (char) this.element.textContent += char;
+        await new Promise(r => setTimeout(r, this.speed));
+      }
+      this.isRunning = false;
+      this.element.classList.add('is-done');
+    }
+
+    done() {
+      this.element.classList.add('is-done');
+    }
+  }
+
+  const writers = {
+    b: new Typewriter(textB),
+    c: new Typewriter(textC),
+    summary: new Typewriter(summaryText),
+  };
+
+  function renderStructuredEntry(key: string, value: any) {
+    if (value === null || value === undefined) return '';
+    const isNum = typeof value === 'number';
+    const displayValue = isNum 
+      ? (value > 100000000 ? (value / 100000000).toFixed(2) + '亿' : value.toLocaleString())
+      : value;
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td class="data-key">${key}</td>
+      <td class="data-value ${isNum ? 'numeric' : ''}">${displayValue}</td>
+    `;
+    dataA.appendChild(row);
+  }
+
+  function formatSymbol(codeParam: string | null): string {
+    if (!codeParam) return '';
+    if (codeParam.includes('.')) return codeParam;
+    const match = codeParam.match(/^([a-z]+)(\d+)$/i);
+    if (match) {
+      return `${match[2]}.${match[1].toUpperCase()}`;
+    }
+    return codeParam;
+  }
+
+  function formatKey(key: string): string {
+    const map: Record<string, string> = {
+      'name': lang === 'zh' ? '公司名称' : 'Company Name',
+      'ticker': lang === 'zh' ? '股票代码' : 'Ticker',
+      'reporting_period': lang === 'zh' ? '报告期' : 'Period',
+      'release_date': lang === 'zh' ? '发布日期' : 'Release Date',
+      'revenue': lang === 'zh' ? '营业收入' : 'Revenue',
+      'net_profit': lang === 'zh' ? '净利润' : 'Net Profit',
+      'gross_margin': lang === 'zh' ? '毛利率' : 'Gross Margin',
+      'roe': lang === 'zh' ? 'ROE' : 'ROE',
+      'total_assets': lang === 'zh' ? '总资产' : 'Total Assets',
+      'total_liabilities': lang === 'zh' ? '总负债' : 'Total Liabs',
+      'debt_to_asset': lang === 'zh' ? '资产负债率' : 'Debt Ratio',
+    };
+    return map[key] || key;
+  }
+
+  function showError(msg?: string) {
+    loadingEl.classList.add('hidden');
+    errorEl.classList.remove('hidden');
+    if (msg && errorTextEl) errorTextEl.textContent = msg;
+  }
+
+  function setProgress(pct: number, label?: string) {
+    progressBar.style.width = pct + '%';
+    progressLabel.textContent = pct + '%';
+    if (label) loadingTextEl.textContent = label;
+  }
+
+  /**
+   * Process a single event from the stream
+   */
+  function processEvent(item: any) {
+    if (!item) return;
+    console.log('[Stream Event]', item);
+    const { producer, event, data } = item;
+
+    // Normalize producer name (A, B, C or normalizer, analyzer, auditor)
+    const p = (producer || '').toUpperCase();
+
+    if ((p === 'A' || p === 'NORMALIZER') && (event === 'a_normalized' || event === 'data')) {
+      const d = data || item.data; // Handle if data is directly in item or nested
+      if (!d) return;
+      
+      const { company, report, income_statement, balance_sheet, key_ratios } = d;
+      if (company) {
+        // Update Page Title dynamically
+        const companyName = company.name || '';
+        let periodText = company.reporting_period || '';
+        // Localize 'FY' to '年度' for Chinese
+        if (lang === 'zh' && periodText.toLowerCase().includes('fy')) {
+          periodText = periodText.replace(/fy/i, '年度');
+        }
+
+        if (companyName) {
+          pageTitleEl.textContent = `${companyName} (${periodText}) 财报分析`;
+          document.title = `${companyName} (${periodText}) 财报分析 - Ezer Audit`;
+        }
+
+        // Add table header if not present
+        if (!dataA.querySelector('th')) {
+          dataA.innerHTML = `
+            <tr>
+              <th>会计科目/指标</th>
+              <th>值</th>
+            </tr>
+          `;
+        }
+
+        renderStructuredEntry(formatKey('name'), company.name);
+        renderStructuredEntry(formatKey('ticker'), company.ticker);
+        renderStructuredEntry(formatKey('reporting_period'), company.reporting_period);
+      }
+      if (report) {
+        renderStructuredEntry(formatKey('release_date'), report.release_date);
+      }
+      if (income_statement) {
+        renderStructuredEntry(formatKey('revenue'), income_statement.revenue);
+        renderStructuredEntry(formatKey('net_profit'), income_statement.net_profit);
+        if (income_statement.gross_margin) {
+          renderStructuredEntry(formatKey('gross_margin'), income_statement.gross_margin.toFixed(2) + '%');
+        }
+      }
+      if (balance_sheet) {
+        renderStructuredEntry(formatKey('total_assets'), balance_sheet.total_assets);
+        renderStructuredEntry(formatKey('total_liabilities'), balance_sheet.total_liabilities);
+      }
+      if (key_ratios) {
+        if (key_ratios.roe) renderStructuredEntry(formatKey('roe'), key_ratios.roe + '%');
+        if (key_ratios.debt_to_asset) renderStructuredEntry(formatKey('debt_to_asset'), key_ratios.debt_to_asset.toFixed(2) + '%');
+      }
+    }
+
+    if ((p === 'B' || p === 'ANALYZER') && (event === 'b_card' || event === 'analysis')) {
+      const d = data || item.data;
+      if (!d) return;
+      const titleContent = d.title ? `${d.title}: ` : '';
+      writers.b.write(titleContent + (d.content || d.text || '') + '\n\n');
+    }
+
+    if ((p === 'C' || p === 'AUDITOR') && (event === 'c_resolved' || event === 'audit')) {
+      const d = data || item.data;
+      if (!d) return;
+      writers.c.write((d.rationale || d.content || d.text || '') + '\n\n');
+    }
+
+    if (event === 'final_summary' || event === 'summary') {
+      const d = data || item.data;
+      if (d) writers.summary.write(d.summary || d.content || d.text || '');
+    }
+
+    if (event === 'final_result' || event === 'result') {
+      const d = data || item.data;
+      if (d) {
+        finalResultText.classList.remove('hidden');
+        const prefix = lang === 'zh' ? '最终结果：' : 'Final Result: ';
+        finalResultText.textContent = prefix + (d.final_status || d.status || d.result || '');
+      }
+    }
+
+    if (event === 'error' || event === 'task_failed') {
+      const d = data || item.data;
+      const msg = d?.message || d?.error || 'Unknown error occurred';
+      showError(msg);
+      return;
+    }
+  }
+
+  /**
+   * Main logic to handle simulated stream
+   */
+  async function processStream(stream: any[]) {
+    loadingEl.classList.add('hidden');
+    resultsEl.classList.remove('hidden');
+
+    for (const item of stream) {
+      processEvent(item);
+      await new Promise(r => setTimeout(r, 200));
+    }
+  }
+
+  // ── Main entry point ──
+  async function main() {
+    try {
+      // Default to Mock for now per user request
+      const useMock = params.get('mock') !== 'false'; 
+
+      if (useMock) {
+        setProgress(40, lang === 'zh' ? '正在加载数据...' : 'Loading data...');
+        const response = await fetch('/examples/catl-300750-2021fy/full_payload.json');
+        if (!response.ok) throw new Error('Failed to load example data');
+        const payload = await response.json();
+        
+        setProgress(100, lang === 'zh' ? '正在分析...' : 'Analyzing...');
+        await new Promise(r => setTimeout(r, 400));
+
+        if (payload.stream) {
+          await processStream(payload.stream);
+        } else {
+          showError('No stream data found in mock payload');
+        }
+        return;
+      }
+
+      // ── Step 1: Initiate Task ──
+      console.log('--- Step 1: Initiating Task ---');
+      setProgress(10, lang === 'zh' ? '正在连接服务器...' : 'Connecting...');
+      
+      const formattedCode = formatSymbol(code);
+      const apiLang = lang === 'zh' ? 'zh-CN' : 'en-US';
+      const apiPeriod = period === 'full' ? 'FY' : (period || 'FY');
+
+      const apiUrl = `https://api.ezer.cc/api/tasks`;
+      const token = 'EZ43IYmVfUeocl38CxEp7BbZXP2V6SfO';
+
+      const initiationResp = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          code: formattedCode, 
+          year: parseInt(year || '2024'), 
+          period: apiPeriod, 
+          lang: apiLang 
+        }),
+      });
+
+      console.log('Initiation Status:', initiationResp.status);
+      if (!initiationResp.ok) {
+        const errText = await initiationResp.text();
+        throw new Error(`Initiation failed: ${initiationResp.status} ${errText}`);
+      }
+
+      const initiationData = await initiationResp.json();
+      console.log('Initiation Data:', initiationData);
+
+      const streamUrl = initiationData.stream_url;
+      if (!streamUrl) {
+        throw new Error('No stream_url returned from API');
+      }
+
+      // ── Step 2: Connect to Stream ──
+      console.log('--- Step 2: Connecting to Stream ---', streamUrl);
+      setProgress(20, lang === 'zh' ? '正在开启流数据...' : 'Opening stream...');
+
+      // Prepend host if relative
+      const fullStreamUrl = streamUrl.startsWith('http') 
+        ? streamUrl 
+        : `https://api.ezer.cc${streamUrl}`;
+
+      const streamResp = await fetch(fullStreamUrl, {
+        headers: { 
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('Stream Connection Status:', streamResp.status);
+      if (!streamResp.ok) {
+        const errText = await streamResp.text();
+        throw new Error(`Stream connection failed: ${streamResp.status} ${errText}`);
+      }
+
+      loadingEl.classList.add('hidden');
+      resultsEl.classList.remove('hidden');
+
+      if (!streamResp.body) {
+        throw new Error('Stream response body is null');
+      }
+
+      console.log('Streaming started...');
+      const reader = streamResp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          console.log('Stream finished.');
+          break;
+        }
+        
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          let trimmed = line.trim();
+          if (!trimmed) continue;
+
+          // Support Server-Sent Events (SSE) prefix
+          if (trimmed.startsWith('data: ')) {
+            trimmed = trimmed.substring(6).trim();
+          }
+          
+          // Skip empty lines or SSE termination
+          if (!trimmed || trimmed === '[DONE]') continue;
+
+          try {
+            const evt = JSON.parse(trimmed);
+            processEvent(evt);
+          } catch (e) { 
+            console.error('Failed to parse stream line:', trimmed, e); 
+          }
+        }
+      }
+
+      if (buffer.trim()) {
+        try {
+          const evt = JSON.parse(buffer.trim());
+          processEvent(evt);
+        } catch (e) {
+          console.error('Failed to parse final buffer:', buffer, e);
+        }
+      }
+
+    } catch (err: any) {
+      showError(err.message);
+    }
+  }
+
+  main();
+</script>

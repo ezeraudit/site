@@ -466,7 +466,7 @@ const periods = [
     const results = await searchStocks(query);
     if (results.length > 0) {
       resultsContainer.innerHTML = results.map(stock => `
-        <div data-code="${stock.code}" data-name="${stock.name}">
+        <div data-code="${stock.code}" data-name="${stock.name}" data-symbol="${stock.symbol}">
           <strong>${stock.code}</strong> - ${stock.name}
         </div>
       `).join('');
@@ -481,8 +481,9 @@ const periods = [
     if (item) {
       const code = item.dataset.code;
       const name = item.dataset.name;
+      const symbol = item.dataset.symbol;
       stockInput.value = `${code} ${name}`;
-      selectedStock = { code, name };
+      selectedStock = { code, name, symbol };
       resultsContainer.classList.add('hidden');
     }
   });
@@ -502,11 +503,10 @@ const periods = [
 
     const year = selectedYear;
     const period = selectedPeriod;
-    const timestamp = Date.now();
-    const uid = Math.random().toString(36).substring(7);
-    const hash = `${uid}_${timestamp}`;
 
-    const checkUrl = `/check?code=${selectedStock.code}&year=${year}&period=${period}&hash=${hash}`;
+    const isEnPath = window.location.pathname.startsWith('/en');
+    const checkPath = isEnPath ? '/en/check' : '/check';
+    const checkUrl = `${checkPath}?code=${selectedStock.symbol}&year=${year}&period=${period}`;
     
     // Check session
     const session = await getSession();
@@ -525,8 +525,9 @@ const periods = [
         const first = resultsContainer.querySelector('div');
         const code = first.dataset.code;
         const name = first.dataset.name;
+        const symbol = first.dataset.symbol;
         stockInput.value = `${code} ${name}`;
-        selectedStock = { code, name };
+        selectedStock = { code, name, symbol };
         resultsContainer.classList.add('hidden');
       } else if (selectedStock) {
         checkBtn.click();

@@ -1,6 +1,0 @@
-{"event":"state_changed","state":"INIT","progress":5}
-{"event":"state_changed","state":"RESOLVED","progress":15}
-{"event":"state_changed","state":"FETCHED","progress":35}
-{"event":"state_changed","state":"ANALYZED","progress":60}
-{"event":"state_changed","state":"REVIEWED","progress":85}
-{"event":"completed","state":"DELIVERED","progress":100,"task_id":"task_300750_2021FY_001"}
