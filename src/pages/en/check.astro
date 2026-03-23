@@ -55,24 +55,49 @@ const translations = ui[lang];
             <div class="thought-grid">
               <!-- A: Structured Data -->
               <div class="thought-section section-a">
-                <div class="section-label">Normalizer (A)</div>
-                <div class="table-wrapper">
-                  <table class="financial-table" id="data-table-a">
-                    <tbody id="data-a-body"></tbody>
-                  </table>
+                <div class="section-label">{lang === 'zh' ? '数据归一化 (A)' : 'Normalizer (A)'}</div>
+                <div class="charts-grid" id="charts-a">
+                  <div class="chart-item">
+                    <div class="chart-label">营业收入 (Revenue)</div>
+                    <div class="chart-canvas-wrapper">
+                      <canvas id="chart-revenue"></canvas>
+                    </div>
+                  </div>
+                  <div class="chart-item">
+                    <div class="chart-label">净利润 (Net Profit)</div>
+                    <div class="chart-canvas-wrapper">
+                      <canvas id="chart-profit"></canvas>
+                    </div>
+                  </div>
+                  <div class="chart-item">
+                    <div class="chart-label">毛利率 (Gross Margin)</div>
+                    <div class="chart-canvas-wrapper">
+                      <canvas id="chart-margin"></canvas>
+                    </div>
+                  </div>
+                  <div class="chart-item">
+                    <div class="chart-label">资产负债率 (Debt Ratio)</div>
+                    <div class="chart-canvas-wrapper">
+                      <canvas id="chart-debt"></canvas>
+                    </div>
+                  </div>
                 </div>
               </div>
               
               <!-- B: Analysis Text -->
               <div class="thought-section section-b">
-                <div class="section-label">Analyzer (B)</div>
-                <div class="text-output" id="text-b"></div>
+                <div class="section-label">{lang === 'zh' ? '深度分析 (B)' : 'Analyzer (B)'}</div>
+                <div class="scroll-wrapper-b">
+                  <div class="text-output" id="text-b"></div>
+                </div>
               </div>
               
               <!-- C: Auditor Text -->
               <div class="thought-section section-c">
-                <div class="section-label">Auditor (C)</div>
-                <div class="text-output" id="text-c"></div>
+                <div class="section-label">{lang === 'zh' ? '风险审计 (C)' : 'Auditor (C)'}</div>
+                <div class="scroll-wrapper-b">
+                  <div class="text-output" id="text-c"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -154,6 +179,7 @@ const translations = ui[lang];
     font-size: 1rem;
     color: var(--color-text-alt);
     font-weight: 500;
+    font-style: italic;
   }
 
   .progress-bar-wrapper {
@@ -175,6 +201,7 @@ const translations = ui[lang];
   .progress-label {
     font-size: 0.85rem;
     color: var(--color-text-alt);
+    font-style: italic;
   }
 
   /* ── Error ── */
@@ -215,7 +242,7 @@ const translations = ui[lang];
 
   /* ── Results Container ── */
   .results-container {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -293,6 +320,7 @@ const translations = ui[lang];
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
+    min-width: 0; /* Crucial for preventing grid item overflow */
   }
 
   .section-label {
@@ -308,35 +336,170 @@ const translations = ui[lang];
     grid-column: 1 / 2;
     border-right: 1px solid rgba(var(--rgb-brand-1), 0.12);
     padding-right: 1.2rem;
-    overflow-x: auto;
   }
 
   .section-b {
     grid-column: 2 / 3;
     padding-left: 0.2rem;
+    position: relative;
+    max-height: 0; /* Important: allow grid to define row height, then fill it */
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Special case: for Auditor (C), we want it in the same column as B or below it? 
+     User said "A B以A高度卡齐", C was originally full-width. 
+     I'll make C scrollable as well if it's below B or share the column.
+  */
+
+  .scroll-wrapper-b {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.8rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--rgb-brand-1), 0.2) transparent;
+  }
+
+  .scroll-wrapper-b::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scroll-wrapper-b::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-wrapper-b::-webkit-scrollbar-thumb {
+    background: rgba(var(--rgb-brand-1), 0.2);
+    border-radius: 10px;
   }
 
   .section-c {
-    grid-column: 1 / 3;
-    border-top: 1px solid rgba(var(--rgb-brand-1), 0.15);
-    padding-top: 1.2rem;
-    margin-top: 0.5rem;
+      grid-column: 1 / 3;
+      border-top: 1px solid rgba(var(--rgb-brand-1), 0.15);
+      padding-top: 1.2rem;
+      margin-top: 0.5rem;
+      min-height: auto;
   }
 
   @media (max-width: 640px) {
+    .check-page {
+      padding-top: 60px;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      overflow-x: hidden;
+    }
+    .u-container {
+      padding: 0 !important;
+      margin: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    .results-container {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      gap: 1rem;
+    }
+    .thought-container {
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      width: 100vw !important;
+    }
+    .thought-content {
+      padding: 0.75rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
     .thought-grid {
       grid-template-columns: 1fr;
+      width: 100%;
     }
     .section-a, .section-b, .section-c {
       grid-column: 1 / 2;
       border-right: none;
       padding-right: 0;
       padding-left: 0;
+      width: 100%;
+      min-width: 0;
     }
     .section-b {
       border-top: 1px solid rgba(var(--rgb-brand-1), 0.12);
       padding-top: 1.2rem;
+      max-height: none;
+      min-height: auto;
     }
+    .scroll-wrapper-b {
+      overflow-y: visible;
+      padding-right: 0;
+    }
+    .section-c {
+      max-height: none;
+    }
+    .col-title {
+      margin-left: 0.8rem;
+      margin-right: 0.8rem;
+    }
+    .summary-box {
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+      padding: 1.2rem;
+    }
+  }
+
+  /* ── Chart Styles ── */
+  .mini-table {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(var(--rgb-brand-1), 0.1);
+    padding-bottom: 1rem;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .chart-item {
+    background: var(--color-bg-alt);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid rgba(var(--rgb-brand-1), 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  .chart-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .chart-item:hover {
+    background: rgba(var(--rgb-brand-1), 0.05);
+    border-color: rgba(var(--rgb-brand-1), 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--rgb-brand-1), 0.08);
+  }
+
+  .chart-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-alt);
+    text-align: center;
+  }
+
+  .chart-canvas-wrapper {
+    position: relative;
+    height: 280px;
+    width: 100%;
   }
 
   /* ── Data & Text Styles ── */
@@ -403,9 +566,133 @@ const translations = ui[lang];
     font-size: 0.95rem;
     line-height: 1.7;
     color: var(--color-text);
-    white-space: pre-wrap;
     min-height: 1.5em;
     opacity: 0.9;
+  }
+
+  /* ── Rich Text Analysis Cards (Section B) ── */
+  .analysis-card {
+    background: rgba(var(--rgb-brand-1), 0.03);
+    border-left: 4px solid var(--color-brand-1);
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .analysis-card h3 {
+    margin: 0 0 0.8rem 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-brand-1);
+  }
+
+  .analysis-card .conclusion {
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    color: var(--color-text);
+  }
+
+  .analysis-card .details-list {
+    margin: 0.5rem 0;
+    padding-left: 1.2rem;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .analysis-card .details-list li {
+    font-size: 0.9rem;
+    position: relative;
+    padding-left: 1rem;
+    color: var(--color-text-alt);
+  }
+
+  .analysis-card .details-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--color-brand-1);
+    font-weight: bold;
+  }
+
+  .analysis-card .label {
+    font-weight: 700;
+    color: var(--color-text-alt);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    margin-right: 0.5rem;
+  }
+
+  .analysis-card .implication {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px dashed rgba(var(--rgb-brand-1), 0.15);
+    font-style: italic;
+  }
+
+  /* ── Audit Items (Section C) ── */
+  .audit-item {
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    animation: slideIn 0.4s ease-out;
+  }
+
+  .audit-item.challenge {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .audit-item.resolved {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .audit-icon-text {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .audit-item.challenge .audit-icon-text { color: #ef4444; }
+  .audit-item.resolved .audit-icon-text { color: #22c55e; }
+
+  .audit-content {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--color-text);
+  }
+
+  .audit-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-alt);
+    margin-top: 0.3rem;
+  }
+
+  /* ── Progress Updates ── */
+  .progress-update {
+    font-size: 0.85rem;
+    color: var(--color-text-alt);
+    font-style: italic;
+    margin-bottom: 0.8rem;
+    opacity: 0.7;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-5px); }
+    to { opacity: 1; transform: translateX(0); }
   }
 
   .text-output::after {
@@ -458,11 +745,25 @@ const translations = ui[lang];
     font-size: 1.1rem;
   }
 
+  .is-placeholder {
+    color: var(--color-text-alt);
+    font-style: italic;
+    opacity: 0.6;
+    animation: pulse 2s infinite ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+  }
+
   /* ── Utility ── */
   .hidden {
     display: none !important;
   }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
   // ── i18n strings passed from Astro ──
@@ -490,32 +791,206 @@ const translations = ui[lang];
   const errorTextEl = document.getElementById('error-text')!;
 
   const thoughtContainer = document.getElementById('thought-container')!;
-  const thoughtToggle = document.getElementById('thought-toggle')!;
-  const dataA = document.getElementById('data-a-body')!;
-  const textB = document.getElementById('text-b')!;
-  const textC = document.getElementById('text-c')!;
+  const textB = document.getElementById('text-b') as HTMLElement;
+  const textC = document.getElementById('text-c') as HTMLElement;
   const summaryText = document.getElementById('summary-text')!;
   const finalResultText = document.getElementById('final-result-text')!;
 
+  // ── Placeholder Manager for B & C ──
+  class PlaceholderManager {
+    private interval: any = null;
+    private messages: string[] = [];
+    private currentIndex = 0;
+
+    constructor(private element: HTMLElement, messages: string[]) {
+      this.messages = messages;
+    }
+
+    start() {
+      if (this.messages.length === 0) return;
+      this.element.classList.add('is-placeholder');
+      this.element.textContent = this.messages[0];
+      this.interval = setInterval(() => {
+        this.currentIndex = (this.currentIndex + 1) % this.messages.length;
+        this.element.textContent = this.messages[this.currentIndex];
+      }, 3000);
+    }
+
+    stop() {
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.interval = null;
+        this.element.textContent = '';
+        this.element.classList.remove('is-placeholder');
+      }
+    }
+
+    isActive() {
+      return this.interval !== null;
+    }
+  }
+
+  const bcMessages = lang === 'zh' ? [
+    '正在多维核对财报钩稽关系...',
+    '正在执行收入截止性测试...',
+    '正在分析营运资金周转效率...',
+    '正在评估资产减值准备计提...',
+    '正在核算加权平均资本成本...',
+    '正在比对历史趋势异常波动...',
+    '正在检验研发投入资本化比例...',
+    '正在审计关联方交易公允性...',
+    '正在验证存货周转率合理性...',
+    '正在解析财报附注深度内涵...',
+    '正在扫描潜在表外融资风险...'
+  ] : [
+    'Cross-checking financial statement integrity...',
+    'Performing revenue cutoff tests...',
+    'Analyzing working capital efficiency...',
+    'Evaluating asset impairment provisions...',
+    'Calculating Weighted Average Cost of Capital...',
+    'Inspecting historical trend anomalies...',
+    'Verifying R&D capitalization ratios...',
+    'Auditing related-party transaction fairness...',
+    'Validating inventory turnover logic...',
+    'Parsing deep insights from footnotes...',
+    'Scanning for off-balance sheet risks...'
+  ];
+
+  const placeholderB = new PlaceholderManager(textB, bcMessages);
+  const placeholderC = new PlaceholderManager(textC, bcMessages);
+
+  // Initialize Summary Placeholder
+  summaryText.textContent = lang === 'zh' ? '正在等待分析完成...' : 'Waiting for analysis to complete...';
+  summaryText.classList.add('is-placeholder');
+
   // Toggle thought process
+  const thoughtToggle = document.getElementById('thought-toggle')!;
   thoughtToggle.addEventListener('click', () => {
     thoughtContainer.classList.toggle('is-collapsed');
     thoughtToggle.setAttribute('aria-expanded', String(!thoughtContainer.classList.contains('is-collapsed')));
   });
 
+  // ── Chart Manager ──
+  class ChartManager {
+    private charts: Record<string, any> = {};
+
+    private getOptions(title: string, suffix: string = '') {
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(100, 116, 139, 0.1)';
+      const brandColor = 'rgba(124, 58, 237, 1)'; // var(--color-brand-1) approximation
+
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: (context: any) => {
+                let label = context.dataset.label || '';
+                if (label) label += ': ';
+                if (context.parsed.y !== null) {
+                  label += context.parsed.y.toLocaleString() + suffix;
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { size: 10 } }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: { 
+              color: textColor, 
+              font: { size: 10 },
+              callback: (value: any) => {
+                if (suffix === '%') return value + '%';
+                if (value >= 100000000) return (value / 100000000).toFixed(1) + (lang === 'zh' ? '亿' : 'B');
+                if (value >= 10000) return (value / 10000).toFixed(0) + (lang === 'zh' ? '万' : '0k');
+                return value;
+              }
+            }
+          }
+        }
+      };
+    }
+
+    render(id: string, data: any[], label: string, suffix: string = '') {
+      const ctx = document.getElementById(id) as HTMLCanvasElement;
+      if (!ctx) return;
+
+      // Reveal the parent container
+      const container = ctx.closest('.chart-item');
+      if (container) container.classList.add('is-visible');
+
+      if (this.charts[id]) {
+        this.charts[id].destroy();
+      }
+
+      // @ts-ignore (Chart.js via CDN)
+      this.charts[id] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.period),
+          datasets: [
+            {
+              label: label,
+              data: data.map(d => d.value),
+              backgroundColor: 'rgba(124, 58, 237, 0.2)',
+              borderColor: 'rgba(124, 58, 237, 0.8)',
+              borderWidth: 1,
+              order: 2,
+              borderRadius: 4,
+            },
+            {
+              label: lang === 'zh' ? '趋势' : 'Trend',
+              data: data.map(d => d.value),
+              type: 'line',
+              borderColor: 'rgba(124, 58, 237, 1)',
+              borderWidth: 2,
+              pointRadius: 3,
+              pointBackgroundColor: 'rgba(124, 58, 237, 1)',
+              tension: 0.4,
+              order: 1
+            }
+          ]
+        },
+        options: this.getOptions(label, suffix)
+      });
+    }
+  }
+
+  const chartManager = new ChartManager();
+
   /**
    * Simple Typewriter effect for streaming feel
    */
   class Typewriter {
-    private queue: string[] = [];
+    private queue: { text?: string; html?: string }[] = [];
     private isRunning = false;
     private speed = 15; // ms per char
+    private scrollParent: HTMLElement | null = null;
 
-    constructor(private element: HTMLElement) {}
+    constructor(private element: HTMLElement) {
+      this.scrollParent = element.closest('.scroll-wrapper-b') || element.closest('.text-output');
+    }
 
     write(text: string) {
       if (!text) return;
-      this.queue.push(...text.split(''));
+      this.queue.push({ text });
+      if (!this.isRunning) this.run();
+    }
+
+    writeHTML(html: string) {
+      if (!html) return;
+      this.queue.push({ html });
       if (!this.isRunning) this.run();
     }
 
@@ -523,12 +998,34 @@ const translations = ui[lang];
       this.isRunning = true;
       this.element.classList.remove('is-done');
       while (this.queue.length > 0) {
-        const char = this.queue.shift();
-        if (char) this.element.textContent += char;
-        await new Promise(r => setTimeout(r, this.speed));
+        const item = this.queue.shift();
+        if (!item) continue;
+
+        if (item.html) {
+          this.element.insertAdjacentHTML('beforeend', item.html);
+          this.autoScroll();
+          await new Promise(r => setTimeout(r, 200));
+        } else if (item.text) {
+          const chars = item.text.split('');
+          for (const char of chars) {
+            this.element.insertAdjacentText('beforeend', char);
+            if (char === '\n') this.autoScroll();
+            await new Promise(r => setTimeout(r, this.speed));
+          }
+        }
+        this.autoScroll();
       }
       this.isRunning = false;
       this.element.classList.add('is-done');
+    }
+
+    private autoScroll() {
+      if (this.scrollParent) {
+        this.scrollParent.scrollTo({
+          top: this.scrollParent.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     }
 
     done() {
@@ -542,19 +1039,32 @@ const translations = ui[lang];
     summary: new Typewriter(summaryText),
   };
 
-  function renderStructuredEntry(key: string, value: any) {
-    if (value === null || value === undefined) return '';
-    const isNum = typeof value === 'number';
-    const displayValue = isNum 
-      ? (value > 100000000 ? (value / 100000000).toFixed(2) + 'B' : value.toLocaleString())
-      : value;
+  async function renderCharts(history: any[]) {
+    if (!history || history.length === 0) return;
     
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td class="data-key">${key}</td>
-      <td class="data-value ${isNum ? 'numeric' : ''}">${displayValue}</td>
-    `;
-    dataA.appendChild(row);
+    // Sort to show chronological order
+    const sorted = [...history].sort((a, b) => {
+        return a.reporting_period.localeCompare(b.reporting_period);
+    });
+
+    const revenueData = sorted.map(h => ({ period: h.reporting_period, value: h.revenue }));
+    const profitData = sorted.map(h => ({ period: h.reporting_period, value: h.net_profit }));
+    const marginData = sorted.map(h => ({ period: h.reporting_period, value: h.gross_margin }));
+    const debtData = sorted.map(h => ({ period: h.reporting_period, value: h.debt_to_asset }));
+
+    const chartConfigs = [
+      { id: 'chart-revenue', data: revenueData, label: formatKey('revenue'), suffix: '' },
+      { id: 'chart-profit', data: profitData, label: formatKey('net_profit'), suffix: '' },
+      { id: 'chart-margin', data: marginData, label: formatKey('gross_margin'), suffix: '%' },
+      { id: 'chart-debt', data: debtData, label: formatKey('debt_to_asset'), suffix: '%' },
+    ];
+
+    for (const config of chartConfigs) {
+      if (config.data.some(d => d.value !== null && d.value !== undefined)) {
+        chartManager.render(config.id, config.data, config.label, config.suffix);
+        await new Promise(r => setTimeout(r, 600)); // Sequential delay for streaming feel
+      }
+    }
   }
 
   function formatSymbol(codeParam: string | null): string {
@@ -599,10 +1109,31 @@ const translations = ui[lang];
   /**
    * Process a single event from the stream
    */
-  function processEvent(item: any) {
+  async function processEvent(item: any) {
     if (!item) return;
     console.log('[Stream Event]', item);
     const { producer, event, data } = item;
+    const value = item.value || data; // Handle alternate field names
+
+    if (event === 'a_data') {
+      const { label, data: chartData, type, suffix } = value;
+      if (label && chartData) {
+        const idMap: Record<string, string> = {
+          'Revenue': 'chart-revenue',
+          '营业收入': 'chart-revenue',
+          'Net Profit': 'chart-profit',
+          '净利润': 'chart-profit',
+          'Gross Margin': 'chart-margin',
+          '毛利率': 'chart-margin',
+          'Debt Ratio': 'chart-debt',
+          '资产负债率': 'chart-debt'
+        };
+        const id = idMap[label] || `chart-${label.toLowerCase()}`;
+        chartManager.render(id, chartData.map((d:any) => typeof d === 'object' ? d : {period: '', value: d}), label, suffix || '');
+        await new Promise(r => setTimeout(r, 400));
+      }
+      return;
+    }
 
     // Normalize producer name (A, B, C or normalizer, analyzer, auditor)
     const p = (producer || '').toUpperCase();
@@ -611,65 +1142,118 @@ const translations = ui[lang];
       const d = data || item.data; // Handle if data is directly in item or nested
       if (!d) return;
       
-      const { company, report, income_statement, balance_sheet, key_ratios } = d;
+      const { company, report, income_statement, balance_sheet, key_ratios, history_12q } = d;
+      
+      if (history_12q) {
+        await renderCharts(history_12q);
+      }
+
       if (company) {
         // Update Page Title dynamically
         const companyName = company.name || '';
-        const periodText = company.reporting_period || '';
+        let periodText = company.reporting_period || '';
+        // Localize 'FY' to '年度' for Chinese
+        if (lang === 'zh' && periodText.toLowerCase().includes('fy')) {
+          periodText = periodText.replace(/fy/i, '年度');
+        }
+
         if (companyName) {
-          const titleSuffix = lang === 'zh' ? '财报分析' : 'Financial Report Analysis';
-          pageTitleEl.textContent = `${companyName} (${periodText}) ${titleSuffix}`;
-          document.title = `${companyName} (${periodText}) ${titleSuffix} - Ezer Audit`;
+            const titleSuffix = lang === 'zh' ? '财报分析' : 'Financial Report Analysis';
+            pageTitleEl.textContent = `${companyName} (${periodText}) ${titleSuffix}`;
+            document.title = `${companyName} (${periodText}) ${titleSuffix} - Ezer Audit`;
         }
-
-        // Add table header if not present
-        if (!dataA.querySelector('th')) {
-          dataA.innerHTML = `
-            <tr>
-              <th>Indicator</th>
-              <th>Value</th>
-            </tr>
-          `;
-        }
-
-        renderStructuredEntry(formatKey('name'), company.name);
-        renderStructuredEntry(formatKey('ticker'), company.ticker);
-        renderStructuredEntry(formatKey('reporting_period'), company.reporting_period);
-      }
-      if (report) {
-        renderStructuredEntry(formatKey('release_date'), report.release_date);
-      }
-      if (income_statement) {
-        renderStructuredEntry(formatKey('revenue'), income_statement.revenue);
-        renderStructuredEntry(formatKey('net_profit'), income_statement.net_profit);
-        if (income_statement.gross_margin) {
-          renderStructuredEntry(formatKey('gross_margin'), income_statement.gross_margin.toFixed(2) + '%');
-        }
-      }
-      if (balance_sheet) {
-        renderStructuredEntry(formatKey('total_assets'), balance_sheet.total_assets);
-        renderStructuredEntry(formatKey('total_liabilities'), balance_sheet.total_liabilities);
-      }
-      if (key_ratios) {
-        if (key_ratios.roe) renderStructuredEntry(formatKey('roe'), key_ratios.roe + '%');
-        if (key_ratios.debt_to_asset) renderStructuredEntry(formatKey('debt_to_asset'), key_ratios.debt_to_asset.toFixed(2) + '%');
       }
     }
 
-    if ((p === 'B' || p === 'ANALYZER') && (event === 'b_card' || event === 'analysis')) {
+    if ((p === 'B' || p === 'ANALYZER')) {
+      if (placeholderB.isActive()) placeholderB.stop();
       const d = data || item.data;
       if (!d) return;
-      const titleContent = d.title ? `${d.title}: ` : '';
-      writers.b.write(titleContent + (d.content || d.text || '') + '\n\n');
+
+      if (event === 'b_progress') {
+        const stepPrefix = lang === 'zh' ? '正在' : 'Analyzing';
+        writers.b.writeHTML(`<div class="progress-update"><i>› ${stepPrefix} ${d.task || d.step || (lang === 'zh' ? '执行分析' : 'Performing Analysis')}...</i></div>`);
+        return;
+      }
+
+      if (event === 'b_card' || event === 'analysis') {
+        let html = `<div class="analysis-card">`;
+        if (d.title) html += `<h3>${d.title}</h3>`;
+        if (d.conclusion) html += `<p class="conclusion">${d.conclusion}</p>`;
+        
+        const details = [];
+        const labelEvidence = lang === 'zh' ? '依据' : 'Evidence';
+        const labelCross = lang === 'zh' ? '交叉验证' : 'Cross-checks';
+        const labelCounter = lang === 'zh' ? '反向观点' : 'Counterpoints';
+        const labelImplication = lang === 'zh' ? '投资启示' : 'Investor Implication';
+
+        if (d.evidence && d.evidence.length) {
+          details.push(`<li><span class="label">${labelEvidence}:</span> ${Array.isArray(d.evidence) ? d.evidence.join(', ') : d.evidence}</li>`);
+        }
+        if (d.cross_checks && d.cross_checks.length) {
+          details.push(`<li><span class="label">${labelCross}:</span> ${Array.isArray(d.cross_checks) ? d.cross_checks.join(', ') : d.cross_checks}</li>`);
+        }
+        if (d.counterpoints && d.counterpoints.length) {
+          details.push(`<li><span class="label">${labelCounter}:</span> ${Array.isArray(d.counterpoints) ? d.counterpoints.join(', ') : d.counterpoints}</li>`);
+        }
+        
+        if (details.length > 0) {
+          html += `<ul class="details-list">${details.join('')}</ul>`;
+        }
+        
+        if (d.investor_implication) {
+          html += `<p class="implication"><span class="label">${labelImplication}:</span> ${d.investor_implication}</p>`;
+        }
+        
+        // Fallback
+        if (!d.conclusion && (d.content || d.text)) {
+          html += `<p>${d.content || d.text}</p>`;
+        }
+        
+        html += `</div>`;
+        writers.b.writeHTML(html);
+      }
     }
 
-    if ((p === 'C' || p === 'AUDITOR') && (event === 'c_resolved' || event === 'audit')) {
+    if ((p === 'C' || p === 'AUDITOR')) {
+      if (placeholderC.isActive()) placeholderC.stop();
       const d = data || item.data;
       if (!d) return;
-      writers.c.write((d.rationale || d.content || d.text || '') + '\n\n');
+
+      if (event === 'c_progress') {
+        const stepPrefix = lang === 'zh' ? '正在' : 'Analyzing';
+        writers.c.writeHTML(`<div class="progress-update"><i>› ${stepPrefix} ${d.task || d.step || (lang === 'zh' ? '执行审计' : 'Performing Audit')}...</i></div>`);
+        return;
+      }
+
+      if (event === 'c_challenge') {
+        const labelChallenge = lang === 'zh' ? '审计挑战' : 'Audit Challenge';
+        const labelTarget = lang === 'zh' ? '针对卡片' : 'Target';
+        let html = `<div class="audit-item challenge">
+          <div class="audit-icon-text">⚠️ ${labelChallenge} (${d.severity || 'MEDIUM'})</div>
+          <div class="audit-content">${d.issue || ''}</div>
+          <div class="audit-meta">${labelTarget}: ${d.target_card_id || 'N/A'}</div>
+        </div>`;
+        writers.c.writeHTML(html);
+      }
+
+      if (event === 'c_resolved' || event === 'audit') {
+        const labelResolved = lang === 'zh' ? '审计通过' : 'Audit Resolved';
+        const labelFix = lang === 'zh' ? '解决项' : 'Fixed';
+        let html = `<div class="audit-item resolved">
+          <div class="audit-icon-text">✅ ${labelResolved}</div>
+          <div class="audit-content">${d.rationale || d.content || d.text || ''}</div>
+          ${d.target_card_id ? `<div class="audit-meta">${labelFix}: ${d.target_card_id}</div>` : ''}
+        </div>`;
+        writers.c.writeHTML(html);
+      }
     }
 
     if (event === 'final_summary' || event === 'summary') {
+      if (summaryText.classList.contains('is-placeholder')) {
+        summaryText.textContent = '';
+        summaryText.classList.remove('is-placeholder');
+      }
       const d = data || item.data;
       if (d) writers.summary.write(d.summary || d.content || d.text || '');
     }
@@ -698,6 +1282,10 @@ const translations = ui[lang];
     loadingEl.classList.add('hidden');
     resultsEl.classList.remove('hidden');
 
+    // Start placeholders
+    placeholderB.start();
+    placeholderC.start();
+
     for (const item of stream) {
       processEvent(item);
       await new Promise(r => setTimeout(r, 200));
@@ -712,17 +1300,25 @@ const translations = ui[lang];
 
       if (useMock) {
         setProgress(40, lang === 'zh' ? '正在加载数据...' : 'Loading data...');
-        const response = await fetch('/examples/catl-300750-2021fy/full_payload.json');
+        const response = await fetch('/examples/frontend_stream_detailed.jsonl');
         if (!response.ok) throw new Error('Failed to load example data');
-        const payload = await response.json();
+        const text = await response.text();
+        const lines = text.split('\n').filter(l => l.trim());
         
         setProgress(100, lang === 'zh' ? '正在分析...' : 'Analyzing...');
         await new Promise(r => setTimeout(r, 400));
 
-        if (payload.stream) {
-          await processStream(payload.stream);
-        } else {
-          showError('No stream data found in mock payload');
+        loadingEl.classList.add('hidden');
+        resultsEl.classList.remove('hidden');
+        placeholderB.start();
+        placeholderC.start();
+
+        for (const line of lines) {
+          try {
+            const evt = JSON.parse(line);
+            await processEvent(evt);
+            await new Promise(r => setTimeout(r, 100));
+          } catch (e) { console.error('Mock parse error', e); }
         }
         return;
       }
@@ -790,6 +1386,10 @@ const translations = ui[lang];
       loadingEl.classList.add('hidden');
       resultsEl.classList.remove('hidden');
 
+      // Start placeholders
+      placeholderB.start();
+      placeholderC.start();
+
       if (!streamResp.body) {
         throw new Error('Stream response body is null');
       }
@@ -813,19 +1413,20 @@ const translations = ui[lang];
 
         for (const line of lines) {
           let trimmed = line.trim();
-          if (!trimmed) continue;
+          // Skip empty lines, comments/keepalives
+          if (!trimmed || trimmed.startsWith(':')) continue;
 
           // Support Server-Sent Events (SSE) prefix
           if (trimmed.startsWith('data: ')) {
             trimmed = trimmed.substring(6).trim();
           }
           
-          // Skip empty lines or SSE termination
+          // Skip empty lines after prefix removal or SSE termination
           if (!trimmed || trimmed === '[DONE]') continue;
 
           try {
-            const evt = JSON.parse(trimmed);
-            processEvent(evt);
+            const item = JSON.parse(trimmed);
+            await processEvent(item);
           } catch (e) { 
             console.error('Failed to parse stream line:', trimmed, e); 
           }
@@ -844,6 +1445,28 @@ const translations = ui[lang];
     } catch (err: any) {
       showError(err.message);
     }
+  }
+
+  // ── Exclusive Scroll for Section B (Desktop) ──
+  const scrollB = document.querySelector('.scroll-wrapper-b') as HTMLElement;
+  if (scrollB) {
+    scrollB.addEventListener('wheel', (e) => {
+      if (window.innerWidth > 640) {
+        const delta = e.deltaY;
+        const { scrollTop, scrollHeight, clientHeight } = scrollB;
+        const canScroll = scrollHeight > clientHeight;
+        
+        if (canScroll) {
+          // Prevent page scroll when reaching boundaries
+          if ((delta < 0 && scrollTop <= 0) || (delta > 0 && scrollTop + clientHeight >= scrollHeight)) {
+            e.preventDefault();
+          }
+        } else {
+          // even if B can't scroll, block page scroll if mouse is in B
+          e.preventDefault();
+        }
+      }
+    }, { passive: false });
   }
 
   main();
