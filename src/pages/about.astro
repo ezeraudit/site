@@ -5,32 +5,32 @@ import Button from "../components/Button.astro";
 
 const values = [
   {
-    title: "创新",
-    text: "我们不断挑戰可能性的边界，寻求解决复杂问题并交付价值的新方法。",
+    title: "红蓝对抗",
+    text: "行业首创对抗式验证逻辑：红队挖掘疑点，蓝队反证校验，有效降低模型幻觉与误判风险。",
   },
   {
-    title: "清晰",
-    text: "清晰的沟通和简单的设计是我们工作的核心。我们能去繁就简，洞察本质。",
+    title: "证据可溯",
+    text: "拒绝“黑盒输出”。我们强调分析结果的确定性与可追溯性，每一项结论都有完整的证据链条支撑。",
   },
   {
-    title: "速度",
-    text: "我们重视执行力。快速移动让我们能够在这个快速变化的世界中学习、适应并保持领先。",
+    title: "专业平民化",
+    text: "我们致力于消除专业审计与普通投资者之间的鸿沟，将顶级投研人员的工作流标准化、产品化。",
   },
   {
-    title: "影响",
-    text: "每一项功能、每一行代码都根据其对用户及其成功产生的实际影响来衡量。",
+    title: "高效协同",
+    text: "利用自研编排中枢驱动多智能体集群并行处理，覆盖财报全维度，实现分析效率的量级提升。",
   },
 ];
 ---
 
-<Layout title="关于我们">
+<Layout title="关于 Ezer - 重新定义财报分析">
   <section class="intro">
     <div class="u-container">
       <h1 class="u-heading large-title" data-sy-reveal="blurIn">
-        重新定义<span class="brand-color">执行</span>的未来。
+        重新定义<span class="brand-color">财报研究</span>的未来
       </h1>
       <p class="u-text intro-text" data-sy-reveal="slideUp">
-        我们是一个由思想家、设计师和工程师组成的集体，致力于构建能够赋予团队力量的工具，以史无前例的速度和清晰度将愿景变为现实。
+        我们是理性敏锐、交叉创新的金融科技新锐。通过将红蓝对抗机制引入财报审计，我们旨在赋能 1.5 亿泛投资人群，以专家级视野重构财报分析体验，直击数据背后的真实价值
       </p>
     </div>
   </section>
@@ -40,19 +40,19 @@ const values = [
     <div class="u-container">
       <div class="u-row align-items-center">
         <div class="u-col-6 u-col-md-12 story-content">
-          <h2 class="u-heading section-title" data-sy-reveal="words">我们的故事</h2>
+          <h2 class="u-heading section-title" data-sy-reveal="words">我们的使命</h2>
           <div class="u-text story-text" data-sy-reveal="fade">
             <p>
-              成立于 2024 年，我们的使命从未改变：消除创意与影响之间的摩擦。我们看到团队在臃肿的工具和碎片化的工作流程中挣扎，我们知道一定有更好的方法。
+              面对长篇累牍的术语与真假难辨的数据，普通投资者在财报研究中长期处于劣势。Ezer的使命是消除专业投研门槛，让真相不再被臃肿的信息掩盖。
             </p>
             <p>
-              通过严谨的设计和对用户体验的深度关注，我们打造了一个不仅管理工作，更在加速工作的平台。
+              通过全流程闭环逻辑，我们实现了从 "信息提取" 到 "深度审计" 的范式跨越。Ezer 拒绝流于表面的内容概括，而是通过严苛的对抗验证，让投资风险由虚转实，有据可依
             </p>
           </div>
         </div>
         <div class="u-col-6 u-col-md-12" data-sy-reveal="scaleUp">
           <div class="image-placeholder">
-            <img src="/image-1.jpg" alt="我们的故事" class="story-image" />
+            <img src="/image-1.jpg" alt="Ezer 智能分析场景" class="story-image" />
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@ const values = [
 
   <section class="values">
     <div class="u-container">
-      <h2 class="u-heading section-title center" data-sy-reveal="blurIn">我们的核心价值观</h2>
+      <h2 class="u-heading section-title center" data-sy-reveal="blurIn">核心技术理念</h2>
       <div class="u-row">
         {values.map((value, i) => (
           <div class="u-col-3 u-col-md-6 u-col-sm-12">
@@ -79,10 +79,10 @@ const values = [
     <TextMarquee
       class="about-marquee"
       texts={[
-        "创新优先",
-        "设计清晰",
-        "为未来而建",
-        "赋能创作者",
+        "对抗验证",
+        "拒绝幻觉",
+        "证据可循",
+        "赋能投资者",
       ]}
     />
   </section>
@@ -91,15 +91,16 @@ const values = [
     <canvas id="cta-cursor-canvas" class="cta-cursor-canvas"></canvas>
     <div class="u-container">
       <div class="cta-box" data-sy-reveal="scaleUp">
-        <h2 class="u-heading cta-title" data-sy-reveal="blurIn">加入我们的旅程。</h2>
-        <p class="u-text cta-subtitle" data-sy-reveal="slideUp">携手共创非凡，重新定义团队协作的方式。</p>
-        <Button title="立即开始" url="#" arrow />
+        <h2 class="u-heading cta-title" data-sy-reveal="blurIn">开启您的专业分析之旅。</h2>
+        <p class="u-text cta-subtitle" data-sy-reveal="slideUp">告别低效的人工翻阅，用红蓝对抗机制锁定真正的投资风险。</p>
+        <Button title="立即体验 Ezer" url="#" arrow />
       </div>
     </div>
   </section>
 </Layout>
 
 <style>
+  /* 样式部分保持不变 */
   section {
     padding: 8rem 0;
   }
@@ -316,6 +317,7 @@ const values = [
 </style>
 
 <script>
+  /* 脚本部分保持不变 */
   import * as THREE from 'three';
 
   function initStoryBackground() {
