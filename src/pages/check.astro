@@ -6,6 +6,28 @@ import { ui } from "../i18n/ui";
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const translations = ui[lang];
+
+// Check parameters
+const code = Astro.url.searchParams.get('code');
+const year = Astro.url.searchParams.get('year');
+const period = Astro.url.searchParams.get('period');
+const preview = Astro.url.searchParams.get('preview');
+
+// 1. No parameters -> Redirect to search
+if (!code && !year && !period && !preview) {
+  return Astro.redirect(lang === 'zh' ? '/search/' : '/en/search/');
+}
+
+// 2. Auth check if not preview
+if (preview !== 'true') {
+  const cookies = Astro.request.headers.get('cookie') || '';
+  const hasSession = cookies.includes('sb-msufgvqofnihylcnxyac-auth-token');
+  
+  if (!hasSession) {
+    const loginUrl = `https://account.ezer.cc/${lang === 'en' ? 'en/' : ''}login/?redirect=${encodeURIComponent(Astro.url.href)}`;
+    return Astro.redirect(loginUrl);
+  }
+}
 ---
 
 <!-- Injected i18n for client-side script -->
@@ -46,7 +68,7 @@ const translations = ui[lang];
         <!-- Thought Process (A, B, C) -->
         <div class="thought-container" id="thought-container">
           <button class="thought-header" id="thought-toggle" aria-expanded="true">
-            <span class="thought-icon">🧠</span>
+            <span class="thought-icon">📊</span>
             <span class="thought-title">{t("check.thought")}</span>
             <span class="thought-arrow"></span>
           </button>
@@ -54,7 +76,7 @@ const translations = ui[lang];
           <div class="thought-content" id="thought-content">
             <div class="thought-grid">
               <!-- A: Structured Data -->
-              <div class="thought-section section-a">
+              <div class="thought-section section-a hidden">
                 <div class="section-label">数据归一化 (A)</div>
                 <div class="charts-grid" id="charts-a">
                   <div class="chart-item">
@@ -95,7 +117,9 @@ const translations = ui[lang];
               <!-- C: Auditor Text -->
               <div class="thought-section section-c">
                 <div class="section-label">风险审计 (C)</div>
-                <div class="text-output" id="text-c"></div>
+                <div class="scroll-wrapper-b">
+                  <div class="text-output" id="text-c"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -108,6 +132,13 @@ const translations = ui[lang];
             <div id="summary-text" class="text-output"></div>
             <div id="final-result-text" class="final-result-output hidden"></div>
           </div>
+        </div>
+        
+        <!-- Preview CTA Button -->
+        <div id="preview-cta-container" class="preview-cta-container hidden">
+          <a href={lang === 'zh' ? '/search/' : '/en/search/'} class="cta-button">
+            {lang === 'zh' ? '立即开启正式分析' : 'Start Full Analysis Now'}
+          </a>
         </div>
       </div>
     </div>
@@ -349,7 +380,6 @@ const translations = ui[lang];
   .scroll-wrapper-b {
     flex: 1;
     overflow-y: auto;
-    overscroll-behavior: contain;
     padding-right: 0.8rem;
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--rgb-brand-1), 0.2) transparent;
@@ -462,7 +492,7 @@ const translations = ui[lang];
     padding: 1rem;
     border: 1px solid rgba(var(--rgb-brand-1), 0.08);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    display: flex;
+    display: none; /* Changed from flex */
     flex-direction: column;
     gap: 0.8rem;
     opacity: 0;
@@ -750,6 +780,47 @@ const translations = ui[lang];
     50% { opacity: 0.7; }
   }
 
+  /* ── Preview CTA ── */
+  .preview-cta-container {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0 4rem;
+    animation: fadeIn 0.8s ease-out;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 1.1rem 2.8rem;
+    background: linear-gradient(135deg, var(--color-brand-1), #9333ea);
+    color: white !important;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.15rem;
+    text-decoration: none;
+    box-shadow: 0 10px 20px -5px rgba(var(--rgb-brand-1), 0.4);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .cta-button:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 15px 30px -5px rgba(var(--rgb-brand-1), 0.5);
+    filter: brightness(1.1);
+  }
+
+  .cta-button:active {
+    transform: translateY(-1px) scale(0.98);
+  }
+
+  @media (max-width: 640px) {
+    .cta-button {
+      padding: 1.25rem 2rem;
+      width: 100%;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+  }
+
   /* ── Utility ── */
   .hidden {
     display: none !important;
@@ -765,13 +836,14 @@ const translations = ui[lang];
 
   // ── Helper: get lang from URL ──
   const isEn = window.location.pathname.startsWith('/en');
-  const lang = isEn ? 'en' : 'zh';
+  const lang = isEn ? 'en' : 'zh-CN';
 
   // ── Grab URL params ──
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   const year = params.get('year');
   const period = params.get('period');
+  const preview = params.get('preview');
 
   // DOM refs
   const loadingEl = document.getElementById('loading-container')!;
@@ -824,7 +896,7 @@ const translations = ui[lang];
     }
   }
 
-  const bcMessages = lang === 'zh' ? [
+  const bcMessages = lang === 'zh-CN' ? [
     '正在多维核对财报钩稽关系...',
     '正在执行收入截止性测试...',
     '正在分析营运资金周转效率...',
@@ -854,7 +926,7 @@ const translations = ui[lang];
   const placeholderC = new PlaceholderManager(textC, bcMessages);
 
   // Initialize Summary Placeholder
-  summaryText.textContent = lang === 'zh' ? '正在等待分析完成...' : 'Waiting for analysis to complete...';
+  summaryText.textContent = lang === 'zh-CN' ? '正在等待分析完成...' : 'Waiting for analysis to complete...';
   summaryText.classList.add('is-placeholder');
 
   // Toggle thought process
@@ -881,6 +953,7 @@ const translations = ui[lang];
           tooltip: {
             mode: 'index',
             intersect: false,
+            filter: (item: any) => item.datasetIndex === 0,
             callbacks: {
               label: (context: any) => {
                 let label = context.dataset.label || '';
@@ -920,8 +993,16 @@ const translations = ui[lang];
       if (!ctx) return;
 
       // Reveal the parent container
-      const container = ctx.closest('.chart-item');
-      if (container) container.classList.add('is-visible');
+      const container = ctx.closest('.chart-item') as HTMLElement;
+      if (container) {
+        container.style.display = 'flex';
+        // Minor delay to trigger CSS transition
+        setTimeout(() => container.classList.add('is-visible'), 10);
+      }
+
+      // Ensure the section itself is visible
+      const sectionA = document.querySelector('.section-a');
+      if (sectionA) sectionA.classList.remove('hidden');
 
       if (this.charts[id]) {
         this.charts[id].destroy();
@@ -943,7 +1024,7 @@ const translations = ui[lang];
               borderRadius: 4,
             },
             {
-              label: lang === 'zh' ? '趋势' : 'Trend',
+              label: lang === 'zh-CN' ? '趋势' : 'Trend',
               data: data.map(d => d.value),
               type: 'line',
               borderColor: 'rgba(124, 58, 237, 1)',
@@ -1072,17 +1153,17 @@ const translations = ui[lang];
 
   function formatKey(key: string): string {
     const map: Record<string, string> = {
-      'name': lang === 'zh' ? '公司名称' : 'Company Name',
-      'ticker': lang === 'zh' ? '股票代码' : 'Ticker',
-      'reporting_period': lang === 'zh' ? '报告期' : 'Period',
-      'release_date': lang === 'zh' ? '发布日期' : 'Release Date',
-      'revenue': lang === 'zh' ? '营业收入' : 'Revenue',
-      'net_profit': lang === 'zh' ? '净利润' : 'Net Profit',
-      'gross_margin': lang === 'zh' ? '毛利率' : 'Gross Margin',
-      'roe': lang === 'zh' ? 'ROE' : 'ROE',
-      'total_assets': lang === 'zh' ? '总资产' : 'Total Assets',
-      'total_liabilities': lang === 'zh' ? '总负债' : 'Total Liabs',
-      'debt_to_asset': lang === 'zh' ? '资产负债率' : 'Debt Ratio',
+      'name': lang === 'zh-CN' ? '公司名称' : 'Company Name',
+      'ticker': lang === 'zh-CN' ? '股票代码' : 'Ticker',
+      'reporting_period': lang === 'zh-CN' ? '报告期' : 'Period',
+      'release_date': lang === 'zh-CN' ? '发布日期' : 'Release Date',
+      'revenue': lang === 'zh-CN' ? '营业收入' : 'Revenue',
+      'net_profit': lang === 'zh-CN' ? '净利润' : 'Net Profit',
+      'gross_margin': lang === 'zh-CN' ? '毛利率' : 'Gross Margin',
+      'roe': lang === 'zh-CN' ? 'ROE' : 'ROE',
+      'total_assets': lang === 'zh-CN' ? '总资产' : 'Total Assets',
+      'total_liabilities': lang === 'zh-CN' ? '总负债' : 'Total Liabs',
+      'debt_to_asset': lang === 'zh-CN' ? '资产负债率' : 'Debt Ratio',
     };
     return map[key] || key;
   }
@@ -1091,6 +1172,22 @@ const translations = ui[lang];
     loadingEl.classList.add('hidden');
     errorEl.classList.remove('hidden');
     if (msg && errorTextEl) errorTextEl.textContent = msg;
+  }
+
+  async function typeText(el: HTMLElement, text: string, speed = 20) {
+    if (!el || !text) return;
+    const chars = text.split('');
+    for (const char of chars) {
+      el.textContent += char;
+      if (char === '\n' || char === '。' || char === '.') {
+        const scrollParent = el.closest('.scroll-wrapper-b') || el.closest('.text-output');
+        if (scrollParent) scrollParent.scrollTo({ top: scrollParent.scrollHeight, behavior: 'smooth' });
+      }
+      await new Promise(r => setTimeout(r, speed));
+    }
+    // Final scroll
+    const scrollParent = el.closest('.scroll-wrapper-b') || el.closest('.text-output');
+    if (scrollParent) scrollParent.scrollTo({ top: scrollParent.scrollHeight, behavior: 'smooth' });
   }
 
   function setProgress(pct: number, label?: string) {
@@ -1146,7 +1243,7 @@ const translations = ui[lang];
         const companyName = company.name || '';
         let periodText = company.reporting_period || '';
         // Localize 'FY' to '年度' for Chinese
-        if (lang === 'zh' && periodText.toLowerCase().includes('fy')) {
+        if (lang === 'zh-CN' && periodText.toLowerCase().includes('fy')) {
           periodText = periodText.replace(/fy/i, '年度');
         }
 
@@ -1168,36 +1265,54 @@ const translations = ui[lang];
       }
 
       if (event === 'b_card' || event === 'analysis') {
-        let html = `<div class="analysis-card">`;
-        if (d.title) html += `<h3>${d.title}</h3>`;
-        if (d.conclusion) html += `<p class="conclusion">${d.conclusion}</p>`;
+        const card = document.createElement('div');
+        card.className = 'analysis-card';
         
-        const details = [];
-        if (d.evidence && d.evidence.length) {
-          details.push(`<li><span class="label">依据:</span> ${Array.isArray(d.evidence) ? d.evidence.join(', ') : d.evidence}</li>`);
-        }
-        if (d.cross_checks && d.cross_checks.length) {
-          details.push(`<li><span class="label">交叉验证:</span> ${Array.isArray(d.cross_checks) ? d.cross_checks.join(', ') : d.cross_checks}</li>`);
-        }
-        if (d.counterpoints && d.counterpoints.length) {
-          details.push(`<li><span class="label">反向观点:</span> ${Array.isArray(d.counterpoints) ? d.counterpoints.join(', ') : d.counterpoints}</li>`);
+        if (d.title) {
+          const h3 = document.createElement('h3');
+          h3.textContent = d.title;
+          card.appendChild(h3);
         }
         
-        if (details.length > 0) {
-          html += `<ul class="details-list">${details.join('')}</ul>`;
-        }
+        const conclusion = document.createElement('p');
+        conclusion.className = 'conclusion';
+        card.appendChild(conclusion);
         
+        writers.b.element.appendChild(card);
+        if (d.conclusion) await typeText(conclusion, d.conclusion, 15);
+
+        const detailsList = document.createElement('ul');
+        detailsList.className = 'details-list';
+        card.appendChild(detailsList);
+
+        const fields = [
+          { key: 'evidence', label: lang === 'zh-CN' ? '依据' : 'Evidence' },
+          { key: 'cross_checks', label: lang === 'zh-CN' ? '交叉验证' : 'Cross-checks' },
+          { key: 'counterpoints', label: lang === 'zh-CN' ? '反向观点' : 'Counterpoints' }
+        ];
+
+        for (const field of fields) {
+          const val = d[field.key];
+          if (val && val.length) {
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="label">${field.label}:</span> `;
+            const textSpan = document.createElement('span');
+            li.appendChild(textSpan);
+            detailsList.appendChild(li);
+            const text = Array.isArray(val) ? val.join(', ') : val;
+            await typeText(textSpan, text, 10);
+          }
+        }
+
         if (d.investor_implication) {
-          html += `<p class="implication"><span class="label">投资启示:</span> ${d.investor_implication}</p>`;
+          const implication = document.createElement('p');
+          implication.className = 'implication';
+          implication.innerHTML = `<span class="label">${lang === 'zh-CN' ? '投资启示' : 'Investor Implication'}:</span> `;
+          const textSpan = document.createElement('span');
+          implication.appendChild(textSpan);
+          card.appendChild(implication);
+          await typeText(textSpan, d.investor_implication, 15);
         }
-        
-        // Fallback
-        if (!d.conclusion && (d.content || d.text)) {
-          html += `<p>${d.content || d.text}</p>`;
-        }
-        
-        html += `</div>`;
-        writers.b.writeHTML(html);
       }
     }
 
@@ -1212,21 +1327,38 @@ const translations = ui[lang];
       }
 
       if (event === 'c_challenge') {
-        let html = `<div class="audit-item challenge">
-          <div class="audit-icon-text">⚠️ 审计挑战 (${d.severity || 'MEDIUM'})</div>
-          <div class="audit-content">${d.issue || ''}</div>
-          <div class="audit-meta">针对卡片: ${d.target_card_id || 'N/A'}</div>
-        </div>`;
-        writers.c.writeHTML(html);
+        const div = document.createElement('div');
+        div.className = 'audit-item challenge';
+        div.innerHTML = `<div class="audit-icon-text">⚠️ ${lang === 'zh-CN' ? '审计挑战' : 'Audit Challenge'} (${d.severity || 'MEDIUM'})</div>`;
+        const content = document.createElement('div');
+        content.className = 'audit-content';
+        div.appendChild(content);
+        if (d.target_card_id) {
+          const meta = document.createElement('div');
+          meta.className = 'audit-meta';
+          meta.textContent = (lang === 'zh-CN' ? '针对: ' : 'Target: ') + d.target_card_id;
+          div.appendChild(meta);
+        }
+        writers.c.element.appendChild(div);
+        if (d.issue) await typeText(content, d.issue, 15);
       }
 
       if (event === 'c_resolved' || event === 'audit') {
-        let html = `<div class="audit-item resolved">
-          <div class="audit-icon-text">✅ 审计通过</div>
-          <div class="audit-content">${d.rationale || d.content || d.text || ''}</div>
-          ${d.target_card_id ? `<div class="audit-meta">解决项: ${d.target_card_id}</div>` : ''}
-        </div>`;
-        writers.c.writeHTML(html);
+        const div = document.createElement('div');
+        div.className = 'audit-item resolved';
+        div.innerHTML = `<div class="audit-icon-text">✅ ${lang === 'zh-CN' ? '审计通过' : 'Audit Passed'}</div>`;
+        const content = document.createElement('div');
+        content.className = 'audit-content';
+        div.appendChild(content);
+        if (d.target_card_id) {
+          const meta = document.createElement('div');
+          meta.className = 'audit-meta';
+          meta.textContent = (lang === 'zh-CN' ? '解决项: ' : 'Resolved: ') + d.target_card_id;
+          div.appendChild(meta);
+        }
+        writers.c.element.appendChild(div);
+        const textToType = d.rationale || d.content || d.text || '';
+        if (textToType) await typeText(content, textToType, 15);
       }
     }
 
@@ -1236,14 +1368,17 @@ const translations = ui[lang];
         summaryText.classList.remove('is-placeholder');
       }
       const d = data || item.data;
-      if (d) writers.summary.write(d.summary || d.content || d.text || '');
+      if (d) {
+        const text = d.summary || d.content || d.text || '';
+        await typeText(summaryText, text, 15);
+      }
     }
 
     if (event === 'final_result' || event === 'result') {
       const d = data || item.data;
       if (d) {
         finalResultText.classList.remove('hidden');
-        const prefix = lang === 'zh' ? '最终结果：' : 'Final Result: ';
+        const prefix = lang === 'zh-CN' ? '最终结果：' : 'Final Result: ';
         finalResultText.textContent = prefix + (d.final_status || d.status || d.result || '');
       }
     }
@@ -1276,92 +1411,20 @@ const translations = ui[lang];
   // ── Main entry point ──
   async function main() {
     try {
-      // Default to Mock for now per user request
-      const useMock = params.get('mock') !== 'false'; 
+      const apiParams = new URLSearchParams();
+      if (code) apiParams.set('code', code);
+      if (year) apiParams.set('year', year);
+      if (period) apiParams.set('period', period);
+      if (preview) apiParams.set('preview', preview);
+      apiParams.set('lang', lang);
 
-      if (useMock) {
-        setProgress(40, lang === 'zh' ? '正在加载数据...' : 'Loading data...');
-        const response = await fetch('/examples/frontend_stream_detailed.jsonl');
-        if (!response.ok) throw new Error('Failed to load example data');
-        const text = await response.text();
-        const lines = text.split('\n').filter(l => l.trim());
-        
-        setProgress(100, lang === 'zh' ? '正在分析...' : 'Analyzing...');
-        await new Promise(r => setTimeout(r, 400));
-
-        loadingEl.classList.add('hidden');
-        resultsEl.classList.remove('hidden');
-        placeholderB.start();
-        placeholderC.start();
-
-        for (const line of lines) {
-          try {
-            const evt = JSON.parse(line);
-            await processEvent(evt);
-            await new Promise(r => setTimeout(r, 100));
-          } catch (e) { console.error('Mock parse error', e); }
-        }
-        return;
-      }
-
-      // ── Step 1: Initiate Task ──
-      console.log('--- Step 1: Initiating Task ---');
-      setProgress(10, lang === 'zh' ? '正在连接服务器...' : 'Connecting...');
+      console.log('--- Initiating Audit via Local API ---');
+      setProgress(10, lang === 'zh-CN' ? '正在开启智能查验...' : 'Initiating smart audit...');
       
-      const formattedCode = formatSymbol(code);
-      const apiLang = lang === 'zh' ? 'zh-CN' : 'en-US';
-      const apiPeriod = period === 'full' ? 'FY' : (period || 'FY');
-
-      const apiUrl = `https://api.ezer.cc/api/tasks`;
-      const token = 'EZ43IYmVfUeocl38CxEp7BbZXP2V6SfO';
-
-      const initiationResp = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-          code: formattedCode, 
-          year: parseInt(year || '2024'), 
-          period: apiPeriod, 
-          lang: apiLang 
-        }),
-      });
-
-      console.log('Initiation Status:', initiationResp.status);
-      if (!initiationResp.ok) {
-        const errText = await initiationResp.text();
-        throw new Error(`Initiation failed: ${initiationResp.status} ${errText}`);
-      }
-
-      const initiationData = await initiationResp.json();
-      console.log('Initiation Data:', initiationData);
-
-      const streamUrl = initiationData.stream_url;
-      if (!streamUrl) {
-        throw new Error('No stream_url returned from API');
-      }
-
-      // ── Step 2: Connect to Stream ──
-      console.log('--- Step 2: Connecting to Stream ---', streamUrl);
-      setProgress(20, lang === 'zh' ? '正在开启流数据...' : 'Opening stream...');
-
-      // Prepend host if relative
-      const fullStreamUrl = streamUrl.startsWith('http') 
-        ? streamUrl 
-        : `https://api.ezer.cc${streamUrl}`;
-
-      const streamResp = await fetch(fullStreamUrl, {
-        headers: { 
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      console.log('Stream Connection Status:', streamResp.status);
-      if (!streamResp.ok) {
-        const errText = await streamResp.text();
-        throw new Error(`Stream connection failed: ${streamResp.status} ${errText}`);
+      const response = await fetch(`/api/check?${apiParams.toString()}`);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error: ${response.status}`);
       }
 
       loadingEl.classList.add('hidden');
@@ -1371,43 +1434,29 @@ const translations = ui[lang];
       placeholderB.start();
       placeholderC.start();
 
-      if (!streamResp.body) {
-        throw new Error('Stream response body is null');
+      if (!response.body) {
+        throw new Error('Response body is empty');
       }
 
-      console.log('Streaming started...');
-      const reader = streamResp.body.getReader();
+      console.log('Streaming started from local API...');
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) {
-          console.log('Stream finished.');
-          break;
-        }
+        if (done) break;
         
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
+        buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
         for (const line of lines) {
-          let trimmed = line.trim();
-          // Skip empty lines, comments/keepalives
-          if (!trimmed || trimmed.startsWith(':')) continue;
-
-          // Support Server-Sent Events (SSE) prefix
-          if (trimmed.startsWith('data: ')) {
-            trimmed = trimmed.substring(6).trim();
-          }
-          
-          // Skip empty lines after prefix removal or SSE termination
-          if (!trimmed || trimmed === '[DONE]') continue;
-
+          const trimmed = line.trim();
+          if (!trimmed) continue;
           try {
-            const evt = JSON.parse(trimmed);
-            await processEvent(evt);
+            const item = JSON.parse(trimmed);
+            await processEvent(item);
           } catch (e) { 
             console.error('Failed to parse stream line:', trimmed, e); 
           }
@@ -1418,9 +1467,7 @@ const translations = ui[lang];
         try {
           const evt = JSON.parse(buffer.trim());
           processEvent(evt);
-        } catch (e) {
-          console.error('Failed to parse final buffer:', buffer, e);
-        }
+        } catch (e) {}
       }
 
     } catch (err: any) {
@@ -1428,27 +1475,35 @@ const translations = ui[lang];
     }
   }
 
-  // ── Exclusive Scroll for Section B (Desktop) ──
-  const scrollB = document.querySelector('.scroll-wrapper-b') as HTMLElement;
-  if (scrollB) {
-    scrollB.addEventListener('wheel', (e) => {
-      if (window.innerWidth > 640) {
-        const delta = e.deltaY;
-        const { scrollTop, scrollHeight, clientHeight } = scrollB;
-        const canScroll = scrollHeight > clientHeight;
-        
-        if (canScroll) {
-          // Prevent page scroll when reaching boundaries
-          if ((delta < 0 && scrollTop <= 0) || (delta > 0 && scrollTop + clientHeight >= scrollHeight)) {
-            e.preventDefault();
-          }
-        } else {
-          // even if B can't scroll, block page scroll if mouse is in B
-          e.preventDefault();
-        }
-      }
-    }, { passive: false });
-  }
+  // ── Scroll Behavior for Area B/C (Desktop) ──
+  const setupAreaScroll = () => {
+    const wrappers = document.querySelectorAll('.scroll-wrapper-b');
+    wrappers.forEach(wrapper => {
+      wrapper.addEventListener('wheel', (e: any) => {
+        if (window.innerWidth > 640) {
+          const { scrollTop, scrollHeight, clientHeight } = wrapper;
+          const isAtTop = scrollTop === 0;
+          const isAtBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 2;
 
-  main();
+          const scrollingDown = e.deltaY > 0;
+          const scrollingUp = e.deltaY < 0;
+
+          // If we are NOT at the boundary in the direction of scrolling, 
+          // stop propagation to prevent Lenis from scrolling the page.
+          if ((scrollingDown && !isAtBottom) || (scrollingUp && !isAtTop)) {
+            e.stopPropagation();
+          }
+        }
+      }, { passive: true });
+    });
+  };
+  setupAreaScroll();
+
+  main().then(() => {
+    // Show CTA if in preview mode
+    if (preview === 'true') {
+      const cta = document.getElementById('preview-cta-container');
+      if (cta) cta.classList.remove('hidden');
+    }
+  });
 </script>

@@ -150,10 +150,17 @@ const options = languages.map(l => ({
       display: none;
     }
     .lang-toggle {
-      padding: 0.6rem 0.8rem;
+      padding: 0.5rem 0.5rem;
+      gap: 0.2rem;
     }
     .dropdown {
       right: -0.5rem;
+    }
+  }
+
+  @media (--mq-tablet) {
+    .lang-toggle {
+      padding: 0.6rem 0.8rem;
     }
   }
 </style>

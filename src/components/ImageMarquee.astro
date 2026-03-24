@@ -137,18 +137,23 @@ const { images, direction } = Astro.props;
 
       const fillCount = Math.floor(innerWidth / width);
 
-      if (images.length < fillCount) {
-        for (let i = 0; i < fillCount - images.length; i++) {
-          const clone = images[i % images.length].cloneNode(
-            true,
-          ) as HTMLElement;
-
-          clone.ariaHidden = "true";
-          ghosts.push(clone);
-          images.push(clone);
+      const originalImages = [...this.images];
+      const originalLength = originalImages.length;
+      
+      // We need enough images to cover the viewport x 2, and we must clone FULL sets
+      // to avoid visual duplication at the wrapping point (e.g. 1, 2, 3, 1, 2, 3)
+      if (width * originalLength < innerWidth) {
+        const repeatCount = Math.ceil(innerWidth / (width * originalLength));
+        
+        for (let r = 0; r < repeatCount; r++) {
+          for (let i = 0; i < originalLength; i++) {
+            const clone = originalImages[i].cloneNode(true) as HTMLElement;
+            clone.ariaHidden = "true";
+            this.ghosts.push(clone);
+            this.images.push(clone);
+            inner.append(clone);
+          }
         }
-
-        inner.append(...ghosts);
       }
 
       this.images = images;
