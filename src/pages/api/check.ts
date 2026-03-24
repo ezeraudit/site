@@ -5,8 +5,8 @@ import { sampleData } from '../../data/sampleData';
 const kvRestUrl = import.meta.env.UPSTASH_REDIS_KV_REST_API_URL;
 const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
 
-const kv = (kvRestUrl && kvRestToken) 
-  ? new Redis({ url: kvRestUrl, token: kvRestToken }) 
+const kv = (kvRestUrl && kvRestToken)
+  ? new Redis({ url: kvRestUrl, token: kvRestToken })
   : null;
 
 const BACKEND_API = 'https://api.ezer.cc/api/tasks';
@@ -17,10 +17,11 @@ export const GET: APIRoute = async ({ request, url }) => {
   const code = url.searchParams.get('code');
   const year = url.searchParams.get('year');
   const period = url.searchParams.get('period');
+  const preview = url.searchParams.get('preview') === 'true';
   const lang = url.searchParams.get('lang') || 'zh-CN';
 
-  // 1. Handle "No Parameters" case - Load sample data
-  if (!code && !year && !period) {
+  // 1. Handle "No Parameters" or "Preview" case - Load sample data
+  if (preview || (!code && !year && !period)) {
     return createDelayedStream(sampleData);
   }
 
@@ -59,7 +60,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         code: formattedCode,
         year: parseInt(year || '2024'),
         period: apiPeriod,
-        lang: lang === 'en' ? 'en-US' : 'zh-CN'
+        lang: lang === 'en' ? 'en' : 'zh-CN'
       })
     });
 
