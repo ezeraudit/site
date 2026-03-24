@@ -1,0 +1,1 @@
+import{a as s}from"./observers.Dpnmwwyi.js";class t extends HTMLElement{connectedCallback(){s(this),this.onResize()}onResize(){const e=this.firstElementChild.getBoundingClientRect();e.height+100>window.innerHeight?(this.style.height="",this.classList.add("has-no-anim")):(this.style.height=`${e.height}px`,this.classList.remove("has-no-anim"))}}customElements.define("sy-footer",t);
