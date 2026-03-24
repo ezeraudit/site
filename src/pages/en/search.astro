@@ -33,6 +33,7 @@ const periods = [
                 placeholder={t("search.placeholder")} 
                 autocomplete="off"
               />
+              <div id="search-results" class="search-results hidden"></div>
             </div>
             
             <div class="divider"></div>
@@ -67,8 +68,6 @@ const periods = [
             <button id="check-btn" class="pill-check-btn">
               {t("search.check")}
             </button>
-
-            <div id="search-results" class="search-results hidden"></div>
           </div>
         </div>
       </div>
@@ -229,14 +228,15 @@ const periods = [
 
   .search-results {
     position: absolute;
-    top: calc(100% + 12px);
+    top: calc(100% + 8px);
     left: 0;
     right: 0;
+    min-width: 280px;
     background: var(--color-surface, #fff);
     border: 1px solid var(--color-border, #dfe1e5);
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-    z-index: 100;
+    z-index: 1000;
     max-height: 400px;
     overflow-y: auto;
     text-align: left;
@@ -332,7 +332,7 @@ const periods = [
 
     .pill-check-btn {
       width: 100%;
-      padding: 0.8rem;
+      padding: 1rem 1.2rem;
     }
   }
 
@@ -503,6 +503,13 @@ const periods = [
 
     const year = selectedYear;
     const period = selectedPeriod;
+
+    // 2025 Annual Report validation
+    if (year === '2025' && period === 'full') {
+      const msg = window.location.pathname.startsWith('/en') ? 'Please select a correct reporting period.' : '请选择正确的财报时段';
+      alert(msg);
+      return;
+    }
 
     const isEnPath = window.location.pathname.startsWith('/en');
     const checkPath = isEnPath ? '/en/check' : '/check';
