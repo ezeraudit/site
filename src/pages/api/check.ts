@@ -1,9 +1,14 @@
 import type { APIRoute } from 'astro';
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 import { sampleData } from '../../data/sampleData';
 
+const kv = new Redis({
+  url: import.meta.env.UPSTASH_REDIS_REST_API_URL,
+  token: import.meta.env.UPSTASH_REDIS_REST_API_TOKEN,
+});
+
 const BACKEND_API = 'https://api.ezer.cc/api/tasks';
-const BACKEND_TOKEN = 'EZ43IYmVfUeocl38CxEp7BbZXP2V6SfO';
+const BACKEND_TOKEN = import.meta.env.BACKEND_TOKEN;
 const CACHE_EXPIRY = 30 * 24 * 60 * 60; // 30 days in seconds
 
 export const GET: APIRoute = async ({ request, url }) => {
@@ -33,11 +38,11 @@ export const GET: APIRoute = async ({ request, url }) => {
 
     // 4. Cache Miss - Fetch from Backend
     console.log(`[Cache Miss] ${cacheKey}. Fetching from backend...`);
-    
+
     // Step A: Initiate Task
     const formattedCode = formatSymbol(code);
     const apiPeriod = period === 'full' ? 'FY' : (period || 'FY');
-    
+
     const initResp = await fetch(BACKEND_API, {
       method: 'POST',
       headers: {
@@ -78,7 +83,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      
+
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
@@ -88,7 +93,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         if (!trimmed || trimmed.startsWith(':')) continue;
         if (trimmed.startsWith('data: ')) trimmed = trimmed.substring(6).trim();
         if (!trimmed || trimmed === '[DONE]') continue;
-        
+
         try {
           allLines.push(JSON.parse(trimmed));
         } catch (e) {
@@ -96,11 +101,11 @@ export const GET: APIRoute = async ({ request, url }) => {
         }
       }
     }
-    
+
     if (buffer.trim()) {
       try {
         allLines.push(JSON.parse(buffer.trim()));
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // 5. Store in KV
@@ -121,18 +126,18 @@ export const GET: APIRoute = async ({ request, url }) => {
  */
 function createDelayedStream(data: any[]) {
   const encoder = new TextEncoder();
-  
+
   // Group events
   const groupA = data.filter(item => {
     const p = (item.producer || '').toUpperCase();
     return p === 'A' || p === 'NORMALIZER' || item.event === 'task_started';
   });
-  
+
   const groupB = data.filter(item => {
     const p = (item.producer || '').toUpperCase();
     return p === 'B' || p === 'ANALYZER';
   });
-  
+
   const groupC = data.filter(item => {
     const p = (item.producer || '').toUpperCase();
     const e = item.event || '';
@@ -149,14 +154,14 @@ function createDelayedStream(data: any[]) {
 
       // 1. Group A (Normalization) - 2 items
       for (const item of groupA) await send(item, 2000);
-      
+
       // 2. Wait 10 seconds between A and B
       if (groupB.length > 0) {
         console.log('Waiting 10s for Group B...');
         await new Promise(r => setTimeout(r, 10000));
         for (const item of groupB) await send(item, 4000);
       }
-      
+
       // 3. Wait 10 seconds between B and C
       if (groupC.length > 0) {
         console.log('Waiting 10s for Group C...');
