@@ -2,10 +2,12 @@ import type { APIRoute } from 'astro';
 import { Redis } from '@upstash/redis';
 import { sampleData } from '../../data/sampleData';
 
-const kv = new Redis({
-  url: import.meta.env.UPSTASH_REDIS_REST_API_URL,
-  token: import.meta.env.UPSTASH_REDIS_REST_API_TOKEN,
-});
+const kvRestUrl = import.meta.env.UPSTASH_REDIS_KV_REST_API_URL;
+const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
+
+const kv = (kvRestUrl && kvRestToken) 
+  ? new Redis({ url: kvRestUrl, token: kvRestToken }) 
+  : null;
 
 const BACKEND_API = 'https://api.ezer.cc/api/tasks';
 const BACKEND_TOKEN = import.meta.env.BACKEND_TOKEN;
@@ -26,14 +28,18 @@ export const GET: APIRoute = async ({ request, url }) => {
   const cacheKey = `cache:check:${code}:${year}:${period}:${lang}`;
 
   try {
-    // 3. Check KV Cache
-    let cachedData = await kv.get<any[]>(cacheKey);
+    // 3. Check KV Cache (if configured)
+    if (kv) {
+      let cachedData = await kv.get<any[]>(cacheKey);
 
-    if (cachedData) {
-      console.log(`[Cache Hit] ${cacheKey}`);
-      // Update expiry
-      await kv.expire(cacheKey, CACHE_EXPIRY);
-      return createDelayedStream(cachedData);
+      if (cachedData) {
+        console.log(`[Cache Hit] ${cacheKey}`);
+        // Update expiry
+        await kv.expire(cacheKey, CACHE_EXPIRY);
+        return createDelayedStream(cachedData);
+      }
+    } else {
+      console.warn('[Redis] Redis is not configured. Skipping cache.');
     }
 
     // 4. Cache Miss - Fetch from Backend
@@ -108,9 +114,11 @@ export const GET: APIRoute = async ({ request, url }) => {
       } catch (e) { }
     }
 
-    // 5. Store in KV
-    await kv.set(cacheKey, allLines, { ex: CACHE_EXPIRY });
-    console.log(`[Cache Stored] ${cacheKey}`);
+    // 5. Store in KV (if configured)
+    if (kv) {
+      await kv.set(cacheKey, allLines, { ex: CACHE_EXPIRY });
+      console.log(`[Cache Stored] ${cacheKey}`);
+    }
 
     // 6. Return Streaming Response
     return createDelayedStream(allLines);
