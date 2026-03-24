@@ -10,8 +10,10 @@
     },
     "dependencies": {
         "@astrojs/sitemap": "^3.7.1",
+        "@astrojs/vercel": "^10.0.2",
         "@csstools/postcss-global-data": "^3.0.0",
         "@pmndrs/vanilla": "^1.25.0",
+        "@vercel/kv": "^3.0.0",
         "astro": "^6.0.5",
         "cssnano": "^7.0.7",
         "gsap": "^3.13.0",

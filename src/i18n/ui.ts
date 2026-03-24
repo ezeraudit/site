@@ -9,7 +9,7 @@ export const ui = {
   zh: {
     'nav.home': '首页',
     'nav.about': '关于',
-    'nav.contact': '联系',
+    'nav.search': '搜索',
     'nav.signin': '登录',
     'nav.me': '我的',
     'accessibility.skip-to-content': '跳到内容',
@@ -57,13 +57,13 @@ export const ui = {
     'check.gate.pass': '通过',
     'check.gate.fail': '未通过',
     'check.confidence': '置信说明',
-    'check.thought': '深度思考',
+    'check.thought': '详细分析',
     'check.final-result': '最终结果',
   },
   en: {
     'nav.home': 'Home',
     'nav.about': 'About',
-    'nav.contact': 'Contact',
+    'nav.search': 'Search',
     'nav.signin': 'Sign in',
     'nav.me': 'Me',
     'accessibility.skip-to-content': 'Skip to content',
@@ -111,7 +111,7 @@ export const ui = {
     'check.gate.pass': 'Pass',
     'check.gate.fail': 'Fail',
     'check.confidence': 'Confidence Note',
-    'check.thought': 'Deep Thinking',
+    'check.thought': 'Detailed Analysis',
     'check.final-result': 'Final Result',
   },
 } as const;

@@ -14,8 +14,8 @@ const t = useTranslations(lang);
 
 const links = [
   { title: t("nav.home"), url: lang === 'zh' ? '/' : '/en/' },
-  { title: t("nav.about"), url: lang === 'zh' ? '/about' : '/en/about' },
-  { title: t("nav.contact"), url: lang === 'zh' ? '/' : '/en/' },
+  { title: t("nav.about"), url: lang === 'zh' ? '/about' : '/en/about/' },
+  { title: t("nav.search"), url: lang === 'zh' ? '/search/' : '/en/search/' },
 ];
 ---
 
@@ -25,6 +25,8 @@ const links = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <Font cssVariable="--font-roboto-slab" preload />
     <Font cssVariable="--font-inter" preload />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
     <title>{title}</title>
     <script is:inline>
       const theme = (() => {
@@ -48,7 +50,7 @@ const links = [
     <a href="#main" class="skip-link">{t("accessibility.skip-to-content")}</a>
     <Header
       logoUrl={lang === 'zh' ? '/' : '/en/'}
-      logoAlt="VIIO"
+      logoAlt="Ezer"
       links={links}
       link2={{ title: t("nav.signin"), url: "#" }}
     >
@@ -60,7 +62,7 @@ const links = [
     <main id="main">
       <slot />
     </main>
-    <Footer logoUrl={lang === 'zh' ? '/' : '/en/'} logoAlt="VIIO" links={links} />
+    <Footer logoUrl={lang === 'zh' ? '/' : '/en/'} logoAlt="Ezer Audit" links={links} />
     <SmoothScroll />
   </body>
 </html>

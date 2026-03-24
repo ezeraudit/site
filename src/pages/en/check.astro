@@ -46,7 +46,7 @@ const translations = ui[lang];
         <!-- Thought Process (A, B, C) -->
         <div class="thought-container" id="thought-container">
           <button class="thought-header" id="thought-toggle" aria-expanded="true">
-            <span class="thought-icon">🧠</span>
+            <span class="thought-icon">📊</span>
             <span class="thought-title">{t("check.thought")}</span>
             <span class="thought-arrow"></span>
           </button>
@@ -356,7 +356,6 @@ const translations = ui[lang];
   .scroll-wrapper-b {
     flex: 1;
     overflow-y: auto;
-    overscroll-behavior: contain;
     padding-right: 0.8rem;
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--rgb-brand-1), 0.2) transparent;
@@ -888,6 +887,7 @@ const translations = ui[lang];
           tooltip: {
             mode: 'index',
             intersect: false,
+            filter: (item: any) => item.datasetIndex === 0,
             callbacks: {
               label: (context: any) => {
                 let label = context.dataset.label || '';
@@ -1100,6 +1100,22 @@ const translations = ui[lang];
     if (msg && errorTextEl) errorTextEl.textContent = msg;
   }
 
+  async function typeText(el: HTMLElement, text: string, speed = 20) {
+    if (!el || !text) return;
+    const chars = text.split('');
+    for (const char of chars) {
+      el.textContent += char;
+      if (char === '\n' || char === '。' || char === '.') {
+        const scrollParent = el.closest('.scroll-wrapper-b') || el.closest('.text-output');
+        if (scrollParent) scrollParent.scrollTo({ top: scrollParent.scrollHeight, behavior: 'smooth' });
+      }
+      await new Promise(r => setTimeout(r, speed));
+    }
+    // Final scroll
+    const scrollParent = el.closest('.scroll-wrapper-b') || el.closest('.text-output');
+    if (scrollParent) scrollParent.scrollTo({ top: scrollParent.scrollHeight, behavior: 'smooth' });
+  }
+
   function setProgress(pct: number, label?: string) {
     progressBar.style.width = pct + '%';
     progressLabel.textContent = pct + '%';
@@ -1177,41 +1193,55 @@ const translations = ui[lang];
       }
 
       if (event === 'b_card' || event === 'analysis') {
-        let html = `<div class="analysis-card">`;
-        if (d.title) html += `<h3>${d.title}</h3>`;
-        if (d.conclusion) html += `<p class="conclusion">${d.conclusion}</p>`;
+        const card = document.createElement('div');
+        card.className = 'analysis-card';
         
-        const details = [];
-        const labelEvidence = lang === 'zh' ? '依据' : 'Evidence';
-        const labelCross = lang === 'zh' ? '交叉验证' : 'Cross-checks';
-        const labelCounter = lang === 'zh' ? '反向观点' : 'Counterpoints';
-        const labelImplication = lang === 'zh' ? '投资启示' : 'Investor Implication';
+        if (d.title) {
+          const h3 = document.createElement('h3');
+          h3.textContent = d.title;
+          card.appendChild(h3);
+        }
+        
+        const conclusion = document.createElement('p');
+        conclusion.className = 'conclusion';
+        card.appendChild(conclusion);
+        
+        writers.b.element.appendChild(card);
+        if (d.conclusion) await typeText(conclusion, d.conclusion, 15);
 
-        if (d.evidence && d.evidence.length) {
-          details.push(`<li><span class="label">${labelEvidence}:</span> ${Array.isArray(d.evidence) ? d.evidence.join(', ') : d.evidence}</li>`);
+        const detailsList = document.createElement('ul');
+        detailsList.className = 'details-list';
+        card.appendChild(detailsList);
+
+        const fields = [
+          { key: 'evidence', label: lang === 'zh' ? '依据' : 'Evidence' },
+          { key: 'cross_checks', label: lang === 'zh' ? '交叉验证' : 'Cross-checks' },
+          { key: 'counterpoints', label: lang === 'zh' ? '反向观点' : 'Counterpoints' }
+        ];
+
+        for (const field of fields) {
+          const val = d[field.key];
+          if (val && val.length) {
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="label">${field.label}:</span> `;
+            const textSpan = document.createElement('span');
+            li.appendChild(textSpan);
+            detailsList.appendChild(li);
+            const text = Array.isArray(val) ? val.join(', ') : val;
+            await typeText(textSpan, text, 10);
+          }
         }
-        if (d.cross_checks && d.cross_checks.length) {
-          details.push(`<li><span class="label">${labelCross}:</span> ${Array.isArray(d.cross_checks) ? d.cross_checks.join(', ') : d.cross_checks}</li>`);
-        }
-        if (d.counterpoints && d.counterpoints.length) {
-          details.push(`<li><span class="label">${labelCounter}:</span> ${Array.isArray(d.counterpoints) ? d.counterpoints.join(', ') : d.counterpoints}</li>`);
-        }
-        
-        if (details.length > 0) {
-          html += `<ul class="details-list">${details.join('')}</ul>`;
-        }
-        
+
         if (d.investor_implication) {
-          html += `<p class="implication"><span class="label">${labelImplication}:</span> ${d.investor_implication}</p>`;
+          const implication = document.createElement('p');
+          implication.className = 'implication';
+          const labelImplication = lang === 'zh' ? '投资启示' : 'Investor Implication';
+          implication.innerHTML = `<span class="label">${labelImplication}:</span> `;
+          const textSpan = document.createElement('span');
+          implication.appendChild(textSpan);
+          card.appendChild(implication);
+          await typeText(textSpan, d.investor_implication, 15);
         }
-        
-        // Fallback
-        if (!d.conclusion && (d.content || d.text)) {
-          html += `<p>${d.content || d.text}</p>`;
-        }
-        
-        html += `</div>`;
-        writers.b.writeHTML(html);
       }
     }
 
@@ -1227,25 +1257,42 @@ const translations = ui[lang];
       }
 
       if (event === 'c_challenge') {
+        const div = document.createElement('div');
+        div.className = 'audit-item challenge';
         const labelChallenge = lang === 'zh' ? '审计挑战' : 'Audit Challenge';
-        const labelTarget = lang === 'zh' ? '针对卡片' : 'Target';
-        let html = `<div class="audit-item challenge">
-          <div class="audit-icon-text">⚠️ ${labelChallenge} (${d.severity || 'MEDIUM'})</div>
-          <div class="audit-content">${d.issue || ''}</div>
-          <div class="audit-meta">${labelTarget}: ${d.target_card_id || 'N/A'}</div>
-        </div>`;
-        writers.c.writeHTML(html);
+        div.innerHTML = `<div class="audit-icon-text">⚠️ ${labelChallenge} (${d.severity || 'MEDIUM'})</div>`;
+        const content = document.createElement('div');
+        content.className = 'audit-content';
+        div.appendChild(content);
+        if (d.target_card_id) {
+          const meta = document.createElement('div');
+          meta.className = 'audit-meta';
+          const labelTarget = lang === 'zh' ? '针对卡片' : 'Target';
+          meta.textContent = `${labelTarget}: ${d.target_card_id}`;
+          div.appendChild(meta);
+        }
+        writers.c.element.appendChild(div);
+        if (d.issue) await typeText(content, d.issue, 15);
       }
 
       if (event === 'c_resolved' || event === 'audit') {
+        const div = document.createElement('div');
+        div.className = 'audit-item resolved';
         const labelResolved = lang === 'zh' ? '审计通过' : 'Audit Resolved';
-        const labelFix = lang === 'zh' ? '解决项' : 'Fixed';
-        let html = `<div class="audit-item resolved">
-          <div class="audit-icon-text">✅ ${labelResolved}</div>
-          <div class="audit-content">${d.rationale || d.content || d.text || ''}</div>
-          ${d.target_card_id ? `<div class="audit-meta">${labelFix}: ${d.target_card_id}</div>` : ''}
-        </div>`;
-        writers.c.writeHTML(html);
+        div.innerHTML = `<div class="audit-icon-text">✅ ${labelResolved}</div>`;
+        const content = document.createElement('div');
+        content.className = 'audit-content';
+        div.appendChild(content);
+        if (d.target_card_id) {
+          const meta = document.createElement('div');
+          meta.className = 'audit-meta';
+          const labelFix = lang === 'zh' ? '解决项' : 'Fixed';
+          meta.textContent = `${labelFix}: ${d.target_card_id}`;
+          div.appendChild(meta);
+        }
+        writers.c.element.appendChild(div);
+        const textToType = d.rationale || d.content || d.text || '';
+        if (textToType) await typeText(content, textToType, 15);
       }
     }
 
@@ -1255,7 +1302,10 @@ const translations = ui[lang];
         summaryText.classList.remove('is-placeholder');
       }
       const d = data || item.data;
-      if (d) writers.summary.write(d.summary || d.content || d.text || '');
+      if (d) {
+        const text = d.summary || d.content || d.text || '';
+        await typeText(summaryText, text, 15);
+      }
     }
 
     if (event === 'final_result' || event === 'result') {
@@ -1295,92 +1345,19 @@ const translations = ui[lang];
   // ── Main entry point ──
   async function main() {
     try {
-      // Default to Mock for now per user request
-      const useMock = params.get('mock') !== 'false'; 
+      const apiParams = new URLSearchParams();
+      if (code) apiParams.set('code', code);
+      if (year) apiParams.set('year', year);
+      if (period) apiParams.set('period', period);
+      apiParams.set('lang', lang);
 
-      if (useMock) {
-        setProgress(40, lang === 'zh' ? '正在加载数据...' : 'Loading data...');
-        const response = await fetch('/examples/frontend_stream_detailed.jsonl');
-        if (!response.ok) throw new Error('Failed to load example data');
-        const text = await response.text();
-        const lines = text.split('\n').filter(l => l.trim());
-        
-        setProgress(100, lang === 'zh' ? '正在分析...' : 'Analyzing...');
-        await new Promise(r => setTimeout(r, 400));
-
-        loadingEl.classList.add('hidden');
-        resultsEl.classList.remove('hidden');
-        placeholderB.start();
-        placeholderC.start();
-
-        for (const line of lines) {
-          try {
-            const evt = JSON.parse(line);
-            await processEvent(evt);
-            await new Promise(r => setTimeout(r, 100));
-          } catch (e) { console.error('Mock parse error', e); }
-        }
-        return;
-      }
-
-      // ── Step 1: Initiate Task ──
-      console.log('--- Step 1: Initiating Task ---');
-      setProgress(10, lang === 'zh' ? '正在连接服务器...' : 'Connecting...');
+      console.log('--- Initiating Audit via Local API ---');
+      setProgress(10, lang === 'zh' ? '正在开启智能查验...' : 'Initiating smart audit...');
       
-      const formattedCode = formatSymbol(code);
-      const apiLang = lang === 'zh' ? 'zh-CN' : 'en-US';
-      const apiPeriod = period === 'full' ? 'FY' : (period || 'FY');
-
-      const apiUrl = `https://api.ezer.cc/api/tasks`;
-      const token = 'EZ43IYmVfUeocl38CxEp7BbZXP2V6SfO';
-
-      const initiationResp = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-          code: formattedCode, 
-          year: parseInt(year || '2024'), 
-          period: apiPeriod, 
-          lang: apiLang 
-        }),
-      });
-
-      console.log('Initiation Status:', initiationResp.status);
-      if (!initiationResp.ok) {
-        const errText = await initiationResp.text();
-        throw new Error(`Initiation failed: ${initiationResp.status} ${errText}`);
-      }
-
-      const initiationData = await initiationResp.json();
-      console.log('Initiation Data:', initiationData);
-
-      const streamUrl = initiationData.stream_url;
-      if (!streamUrl) {
-        throw new Error('No stream_url returned from API');
-      }
-
-      // ── Step 2: Connect to Stream ──
-      console.log('--- Step 2: Connecting to Stream ---', streamUrl);
-      setProgress(20, lang === 'zh' ? '正在开启流数据...' : 'Opening stream...');
-
-      // Prepend host if relative
-      const fullStreamUrl = streamUrl.startsWith('http') 
-        ? streamUrl 
-        : `https://api.ezer.cc${streamUrl}`;
-
-      const streamResp = await fetch(fullStreamUrl, {
-        headers: { 
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      console.log('Stream Connection Status:', streamResp.status);
-      if (!streamResp.ok) {
-        const errText = await streamResp.text();
-        throw new Error(`Stream connection failed: ${streamResp.status} ${errText}`);
+      const response = await fetch(`/api/check?${apiParams.toString()}`);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error: ${response.status}`);
       }
 
       loadingEl.classList.add('hidden');
@@ -1390,40 +1367,26 @@ const translations = ui[lang];
       placeholderB.start();
       placeholderC.start();
 
-      if (!streamResp.body) {
-        throw new Error('Stream response body is null');
+      if (!response.body) {
+        throw new Error('Response body is empty');
       }
 
-      console.log('Streaming started...');
-      const reader = streamResp.body.getReader();
+      console.log('Streaming started from local API...');
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) {
-          console.log('Stream finished.');
-          break;
-        }
+        if (done) break;
         
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
+        buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
         for (const line of lines) {
-          let trimmed = line.trim();
-          // Skip empty lines, comments/keepalives
-          if (!trimmed || trimmed.startsWith(':')) continue;
-
-          // Support Server-Sent Events (SSE) prefix
-          if (trimmed.startsWith('data: ')) {
-            trimmed = trimmed.substring(6).trim();
-          }
-          
-          // Skip empty lines after prefix removal or SSE termination
-          if (!trimmed || trimmed === '[DONE]') continue;
-
+          const trimmed = line.trim();
+          if (!trimmed) continue;
           try {
             const item = JSON.parse(trimmed);
             await processEvent(item);
@@ -1437,9 +1400,7 @@ const translations = ui[lang];
         try {
           const evt = JSON.parse(buffer.trim());
           processEvent(evt);
-        } catch (e) {
-          console.error('Failed to parse final buffer:', buffer, e);
-        }
+        } catch (e) {}
       }
 
     } catch (err: any) {
@@ -1447,27 +1408,29 @@ const translations = ui[lang];
     }
   }
 
-  // ── Exclusive Scroll for Section B (Desktop) ──
-  const scrollB = document.querySelector('.scroll-wrapper-b') as HTMLElement;
-  if (scrollB) {
-    scrollB.addEventListener('wheel', (e) => {
-      if (window.innerWidth > 640) {
-        const delta = e.deltaY;
-        const { scrollTop, scrollHeight, clientHeight } = scrollB;
-        const canScroll = scrollHeight > clientHeight;
-        
-        if (canScroll) {
-          // Prevent page scroll when reaching boundaries
-          if ((delta < 0 && scrollTop <= 0) || (delta > 0 && scrollTop + clientHeight >= scrollHeight)) {
-            e.preventDefault();
+  // ── Scroll Behavior for Area B/C (Desktop) ──
+  const setupAreaScroll = () => {
+    const wrappers = document.querySelectorAll('.scroll-wrapper-b');
+    wrappers.forEach(wrapper => {
+      wrapper.addEventListener('wheel', (e: any) => {
+        if (window.innerWidth > 640) {
+          const { scrollTop, scrollHeight, clientHeight } = wrapper;
+          const isAtTop = scrollTop === 0;
+          const isAtBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 2;
+
+          const scrollingDown = e.deltaY > 0;
+          const scrollingUp = e.deltaY < 0;
+
+          // If we are NOT at the boundary in the direction of scrolling, 
+          // stop propagation to prevent Lenis from scrolling the page.
+          if ((scrollingDown && !isAtBottom) || (scrollingUp && !isAtTop)) {
+            e.stopPropagation();
           }
-        } else {
-          // even if B can't scroll, block page scroll if mouse is in B
-          e.preventDefault();
         }
-      }
-    }, { passive: false });
-  }
+      }, { passive: true });
+    });
+  };
+  setupAreaScroll();
 
   main();
 </script>

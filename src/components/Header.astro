@@ -74,6 +74,7 @@ const { logoUrl, logoAlt, link1, link2, links } = Astro.props;
   sy-head {
     --br: 1.5rem;
 
+    display: block;
     position: fixed;
     top: 0;
     left: 0;
@@ -140,13 +141,12 @@ const { logoUrl, logoAlt, link1, link2, links } = Astro.props;
   .logo {
     position: relative;
     z-index: 3;
+    display: flex;
+    align-items: center;
 
     svg {
-      width: 2.4rem;
-
-      :global(path) {
-        fill: currentcolor;
-      }
+      width: auto;
+      height: 1.5rem;
     }
   }
 
