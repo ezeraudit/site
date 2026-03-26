@@ -1230,27 +1230,26 @@ if (preview !== 'true') {
     const p = (producer || '').toUpperCase();
 
     if ((p === 'A' || p === 'NORMALIZER') && (event === 'a_normalized' || event === 'data')) {
-      const d = data || item.data; // Handle if data is directly in item or nested
+      const d = data || item.data;
       if (!d) return;
       
       const { company, report, income_statement, balance_sheet, key_ratios, history_12q } = d;
       
       if (history_12q) {
-        renderCharts(history_12q);
+        await renderCharts(history_12q);
       }
 
       if (company) {
-        // Update Page Title dynamically
         const companyName = company.name || '';
         let periodText = company.reporting_period || '';
-        // Localize 'FY' to '年度' for Chinese
         if (lang === 'zh-CN' && periodText.toLowerCase().includes('fy')) {
           periodText = periodText.replace(/fy/i, '年度');
         }
 
         if (companyName) {
-          pageTitleEl.textContent = `${companyName} (${periodText}) 财报分析`;
-          document.title = `${companyName} (${periodText}) 财报分析 - Ezer Audit`;
+          const titleSuffix = lang === 'zh-CN' ? '财报分析' : 'Financial Report Analysis';
+          pageTitleEl.textContent = `${companyName} (${periodText}) ${titleSuffix}`;
+          document.title = `${companyName} (${periodText}) ${titleSuffix} - Ezer Audit`;
         }
       }
     }
@@ -1261,7 +1260,8 @@ if (preview !== 'true') {
       if (!d) return;
 
       if (event === 'b_progress') {
-        writers.b.writeHTML(`<div class="progress-update"><i>› 正在 ${d.task || d.step || '执行分析'}...</i></div>`);
+        const stepPrefix = lang === 'zh-CN' ? '正在' : 'Analyzing';
+        writers.b.writeHTML(`<div class="progress-update"><i>› ${stepPrefix} ${d.task || d.step || (lang === 'zh-CN' ? '执行分析' : 'Performing Analysis')}...</i></div>`);
         return;
       }
 
@@ -1308,7 +1308,8 @@ if (preview !== 'true') {
         if (d.investor_implication) {
           const implication = document.createElement('p');
           implication.className = 'implication';
-          implication.innerHTML = `<span class="label">${lang === 'zh-CN' ? '投资启示' : 'Investor Implication'}:</span> `;
+          const labelImplication = lang === 'zh-CN' ? '投资启示' : 'Investor Implication';
+          implication.innerHTML = `<span class="label">${labelImplication}:</span> `;
           const textSpan = document.createElement('span');
           implication.appendChild(textSpan);
           card.appendChild(implication);
@@ -1323,21 +1324,24 @@ if (preview !== 'true') {
       if (!d) return;
 
       if (event === 'c_progress') {
-        writers.c.writeHTML(`<div class="progress-update"><i>› 正在 ${d.task || d.step || '执行审计'}...</i></div>`);
+        const stepPrefix = lang === 'zh-CN' ? '正在' : 'Analyzing';
+        writers.c.writeHTML(`<div class="progress-update"><i>› ${stepPrefix} ${d.task || d.step || (lang === 'zh-CN' ? '执行审计' : 'Performing Audit')}...</i></div>`);
         return;
       }
 
       if (event === 'c_challenge') {
         const div = document.createElement('div');
         div.className = 'audit-item challenge';
-        div.innerHTML = `<div class="audit-icon-text">⚠️ ${lang === 'zh-CN' ? '审计挑战' : 'Audit Challenge'} (${d.severity || 'MEDIUM'})</div>`;
+        const labelChallenge = lang === 'zh-CN' ? '审计挑战' : 'Audit Challenge';
+        div.innerHTML = `<div class="audit-icon-text">⚠️ ${labelChallenge} (${d.severity || 'MEDIUM'})</div>`;
         const content = document.createElement('div');
         content.className = 'audit-content';
         div.appendChild(content);
         if (d.target_card_id) {
           const meta = document.createElement('div');
           meta.className = 'audit-meta';
-          meta.textContent = (lang === 'zh-CN' ? '针对: ' : 'Target: ') + d.target_card_id;
+          const labelTarget = lang === 'zh-CN' ? '针对' : 'Target';
+          meta.textContent = `${labelTarget}: ${d.target_card_id}`;
           div.appendChild(meta);
         }
         writers.c.element.appendChild(div);
@@ -1347,14 +1351,16 @@ if (preview !== 'true') {
       if (event === 'c_resolved' || event === 'audit') {
         const div = document.createElement('div');
         div.className = 'audit-item resolved';
-        div.innerHTML = `<div class="audit-icon-text">✅ ${lang === 'zh-CN' ? '审计通过' : 'Audit Passed'}</div>`;
+        const labelResolved = lang === 'zh-CN' ? '审计通过' : 'Audit Resolved';
+        div.innerHTML = `<div class="audit-icon-text">✅ ${labelResolved}</div>`;
         const content = document.createElement('div');
         content.className = 'audit-content';
         div.appendChild(content);
         if (d.target_card_id) {
           const meta = document.createElement('div');
           meta.className = 'audit-meta';
-          meta.textContent = (lang === 'zh-CN' ? '解决项: ' : 'Resolved: ') + d.target_card_id;
+          const labelFix = lang === 'zh-CN' ? '解决项' : 'Fixed';
+          meta.textContent = `${labelFix}: ${d.target_card_id}`;
           div.appendChild(meta);
         }
         writers.c.element.appendChild(div);
@@ -1443,7 +1449,7 @@ if (preview !== 'true') {
         const { api, token, params } = serverResult.config;
         console.log('Cache Miss: Initiating DIRECT fetch to backend to avoid 10s limits...');
 
-        // Step 1: Initialize Task
+        // Step 1: Initialize Task (POST /api/tasks)
         const taskResp = await fetch(api, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -1453,24 +1459,26 @@ if (preview !== 'true') {
             const errTxt = await taskResp.text();
             throw new Error(`Task init failed: ${taskResp.status} ${errTxt}`);
         }
+        
         const taskData = await taskResp.json();
+        const taskId = taskData.task_id;
         const rawStreamUrl = taskData.stream_url;
+        const rawResultUrl = taskData.result_url;
+
         if (!rawStreamUrl) throw new Error('No stream_url from backend');
         const streamUrl = rawStreamUrl.startsWith('http') ? rawStreamUrl : `https://api.ezer.cc${rawStreamUrl}`;
+        const resultUrl = rawResultUrl ? (rawResultUrl.startsWith('http') ? rawResultUrl : `https://api.ezer.cc${rawResultUrl}`) : null;
 
         // Step 2: Stream from backend with a 5-minute total duration timeout
         const controller = new AbortController();
-        
-        // 5-minute total completion timeout
         const timeoutId = setTimeout(() => {
           controller.abort();
-          showError('请求数量过多，请您稍后重试');
-          console.error('[Timeout] Analysis did not complete within 5 minutes.');
+          showError(lang === 'zh-CN' ? '分析超时，请稍后刷新重试' : 'Analysis timeout, please refresh later');
         }, 300000);
 
         console.log('Connecting to direct stream:', streamUrl);
         const streamResp = await fetch(streamUrl, {
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'text/event-stream' },
             signal: controller.signal
         });
 
@@ -1479,14 +1487,36 @@ if (preview !== 'true') {
             throw new Error(`Stream download failed: ${streamResp.status}`);
         }
         
+        // Handle SSE stream using the pattern from public/examples/frontend_call_example_v1.md
         await handleResponseStream(streamResp, (item) => {
             collectedData.push(item);
-        });
+        }, true); // Pass isSSE = true
 
-        // Analysis finished successfully
         clearTimeout(timeoutId);
 
-        // Step 3: Callback to cache the full result if we got something
+        // Step 3: Fetch Final Result if available (to ensure completeness)
+        if (resultUrl && collectedData.length > 0) {
+            console.log('Fetching final result for data verification...');
+            try {
+                const finalResp = await fetch(resultUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (finalResp.ok) {
+                    const finalData = await finalResp.json();
+                    // Process final result if needed, e.g., to backfill missing fields
+                    console.log('Final Result Data:', finalData);
+                    // Standard backend format is to put everything in final_payload
+                    const payload = finalData.final_payload;
+                    if (payload) {
+                        // Optionally merge or sync with collectedData
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch final result:', e);
+            }
+        }
+
+        // Step 4: Backfill Cache
         if (collectedData.length > 0) {
             console.log('Analysis complete. Backfilling cache...');
             fetch('/api/check', {
@@ -1508,8 +1538,9 @@ if (preview !== 'true') {
 
   /**
    * Helper to handle stream decoding and line processing
+   * Supports both NDR-JSON and SSE (with data: prefix and \n\n separator)
    */
-  async function handleResponseStream(response: Response, onEachItem?: (item: any) => void) {
+  async function handleResponseStream(response: Response, onEachItem?: (item: any) => void, isSSE = false) {
     loadingEl.classList.add('hidden');
     resultsEl.classList.remove('hidden');
 
@@ -1527,32 +1558,65 @@ if (preview !== 'true') {
       if (done) break;
       
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith(':')) continue;
-        let dataStr = trimmed;
-        if (dataStr.startsWith('data: ')) dataStr = dataStr.substring(6).trim();
-        if (!dataStr || dataStr === '[DONE]') continue;
+      if (isSSE) {
+        // SSE Logic (Uses \n\n as boundary)
+        while (true) {
+          const boundary = buffer.indexOf('\n\n');
+          if (boundary === -1) break;
 
-        try {
-          const item = JSON.parse(dataStr);
-          if (onEachItem) onEachItem(item);
-          await processEvent(item);
-        } catch (e) { 
-          console.error('Line parse error:', dataStr, e); 
+          const rawEvent = buffer.slice(0, boundary);
+          buffer = buffer.slice(boundary + 2);
+
+          for (const line of rawEvent.split('\n')) {
+            if (!line.startsWith('data: ')) continue;
+            const dataStr = line.slice(6).trim();
+            if (!dataStr || dataStr === '[DONE]') continue;
+
+            try {
+              const item = JSON.parse(dataStr);
+              if (onEachItem) onEachItem(item);
+              await processEvent(item);
+            } catch (e) {
+              console.error('SSE Line parse error:', dataStr, e);
+            }
+          }
+        }
+      } else {
+        // Standard NDR-JSON Logic (Uses \n as boundary)
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith(':')) continue;
+          let dataStr = trimmed;
+          if (dataStr.startsWith('data: ')) dataStr = dataStr.substring(6).trim();
+          if (!dataStr || dataStr === '[DONE]') continue;
+
+          try {
+            const item = JSON.parse(dataStr);
+            if (onEachItem) onEachItem(item);
+            await processEvent(item);
+          } catch (e) { 
+            console.error('NDR JSON Line parse error:', dataStr, e); 
+          }
         }
       }
     }
 
+    // Process leftover buffer
     if (buffer.trim()) {
-      try {
-        const evt = JSON.parse(buffer.trim());
-        if (onEachItem) onEachItem(evt);
-        processEvent(evt);
-      } catch (e) {}
+        const trimmed = buffer.trim();
+        let dataStr = trimmed;
+        if (dataStr.startsWith('data: ')) dataStr = dataStr.substring(6).trim();
+        if (dataStr && dataStr !== '[DONE]') {
+            try {
+                const item = JSON.parse(dataStr);
+                if (onEachItem) onEachItem(item);
+                await processEvent(item);
+            } catch (e) {}
+        }
     }
   }
 

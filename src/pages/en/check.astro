@@ -1456,7 +1456,7 @@ if (preview !== 'true') {
         const { api, token, params } = serverResult.config;
         console.log('Cache Miss: Initiating DIRECT fetch to backend to avoid 10s limits...');
 
-        // Step 1: Initialize Task
+        // Step 1: Initialize Task (POST /api/tasks)
         const taskResp = await fetch(api, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -1466,24 +1466,26 @@ if (preview !== 'true') {
             const errTxt = await taskResp.text();
             throw new Error(`Task init failed: ${taskResp.status} ${errTxt}`);
         }
+        
         const taskData = await taskResp.json();
+        const taskId = taskData.task_id;
         const rawStreamUrl = taskData.stream_url;
+        const rawResultUrl = taskData.result_url;
+
         if (!rawStreamUrl) throw new Error('No stream_url from backend');
         const streamUrl = rawStreamUrl.startsWith('http') ? rawStreamUrl : `https://api.ezer.cc${rawStreamUrl}`;
+        const resultUrl = rawResultUrl ? (rawResultUrl.startsWith('http') ? rawResultUrl : `https://api.ezer.cc${rawResultUrl}`) : null;
 
         // Step 2: Stream from backend with a 5-minute total duration timeout
         const controller = new AbortController();
-        
-        // 5-minute total completion timeout
         const timeoutId = setTimeout(() => {
           controller.abort();
-          showError('请求数量过多，请您稍后重试');
-          console.error('[Timeout] Analysis did not complete within 5 minutes.');
+          showError(isEn ? 'Analysis timeout, please refresh later' : '分析超时，请稍后刷新重试');
         }, 300000);
 
         console.log('Connecting to direct stream:', streamUrl);
         const streamResp = await fetch(streamUrl, {
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'text/event-stream' },
             signal: controller.signal
         });
 
@@ -1492,14 +1494,36 @@ if (preview !== 'true') {
             throw new Error(`Stream download failed: ${streamResp.status}`);
         }
         
+        // Handle SSE stream using the pattern from public/examples/frontend_call_example_v1.md
         await handleResponseStream(streamResp, (item) => {
             collectedData.push(item);
-        });
+        }, true); // Pass isSSE = true
 
-        // Analysis finished successfully
         clearTimeout(timeoutId);
 
-        // Step 3: Callback to cache the full result if we got something
+        // Step 3: Fetch Final Result if available
+        if (resultUrl && collectedData.length > 0) {
+            console.log('Fetching final result for data verification...');
+            try {
+                const finalResp = await fetch(resultUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (finalResp.ok) {
+                    const finalData = await finalResp.json();
+                    // Process final result if needed, e.g., to backfill missing fields
+                    console.log('Final Result Data:', finalData);
+                    // Standard backend format is to put everything in final_payload
+                    const payload = finalData.final_payload;
+                    if (payload) {
+                        // Optionally merge or sync with collectedData
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch final result:', e);
+            }
+        }
+
+        // Step 4: Backfill Cache
         if (collectedData.length > 0) {
             console.log('Analysis complete. Backfilling cache...');
             fetch('/api/check', {
@@ -1521,8 +1545,9 @@ if (preview !== 'true') {
 
   /**
    * Helper to handle stream decoding and line processing
+   * Supports both NDR-JSON and SSE (with data: prefix and \n\n separator)
    */
-  async function handleResponseStream(response: Response, onEachItem?: (item: any) => void) {
+  async function handleResponseStream(response: Response, onEachItem?: (item: any) => void, isSSE = false) {
     loadingEl.classList.add('hidden');
     resultsEl.classList.remove('hidden');
 
@@ -1540,32 +1565,65 @@ if (preview !== 'true') {
       if (done) break;
       
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith(':')) continue;
-        let dataStr = trimmed;
-        if (dataStr.startsWith('data: ')) dataStr = dataStr.substring(6).trim();
-        if (!dataStr || dataStr === '[DONE]') continue;
+      if (isSSE) {
+        // SSE Logic (Uses \n\n as boundary)
+        while (true) {
+          const boundary = buffer.indexOf('\n\n');
+          if (boundary === -1) break;
 
-        try {
-          const item = JSON.parse(dataStr);
-          if (onEachItem) onEachItem(item);
-          await processEvent(item);
-        } catch (e) { 
-          console.error('Line parse error:', dataStr, e); 
+          const rawEvent = buffer.slice(0, boundary);
+          buffer = buffer.slice(boundary + 2);
+
+          for (const line of rawEvent.split('\n')) {
+            if (!line.startsWith('data: ')) continue;
+            const dataStr = line.slice(6).trim();
+            if (!dataStr || dataStr === '[DONE]') continue;
+
+            try {
+              const item = JSON.parse(dataStr);
+              if (onEachItem) onEachItem(item);
+              await processEvent(item);
+            } catch (e) {
+              console.error('SSE Line parse error:', dataStr, e);
+            }
+          }
+        }
+      } else {
+        // Standard NDR-JSON Logic (Uses \n as boundary)
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith(':')) continue;
+          let dataStr = trimmed;
+          if (dataStr.startsWith('data: ')) dataStr = dataStr.substring(6).trim();
+          if (!dataStr || dataStr === '[DONE]') continue;
+
+          try {
+            const item = JSON.parse(dataStr);
+            if (onEachItem) onEachItem(item);
+            await processEvent(item);
+          } catch (e) { 
+            console.error('NDR JSON Line parse error:', dataStr, e); 
+          }
         }
       }
     }
 
+    // Process leftover buffer
     if (buffer.trim()) {
-      try {
-        const evt = JSON.parse(buffer.trim());
-        if (onEachItem) onEachItem(evt);
-        processEvent(evt);
-      } catch (e) {}
+        const trimmed = buffer.trim();
+        let dataStr = trimmed;
+        if (dataStr.startsWith('data: ')) dataStr = dataStr.substring(6).trim();
+        if (dataStr && dataStr !== '[DONE]') {
+            try {
+                const item = JSON.parse(dataStr);
+                if (onEachItem) onEachItem(item);
+                await processEvent(item);
+            } catch (e) {}
+        }
     }
   }
 
