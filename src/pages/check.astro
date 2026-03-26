@@ -1169,9 +1169,10 @@ if (preview !== 'true') {
   }
 
   function showError(msg?: string) {
+    if (msg) console.error('[Analysis Error Detail]:', msg);
     loadingEl.classList.add('hidden');
     errorEl.classList.remove('hidden');
-    if (msg && errorTextEl) errorTextEl.textContent = msg;
+    // errorTextEl will keep the value from t("check.error") rendered in HTML
   }
 
   async function typeText(el: HTMLElement, text: string, speed = 20) {
