@@ -1411,68 +1411,148 @@ if (preview !== 'true') {
 
   // ── Main entry point ──
   async function main() {
+    let collectedData: any[] = [];
+    const cacheKey = `cache:check:${code}:${year}:${period}:${lang}`;
+
     try {
-      const apiParams = new URLSearchParams();
-      if (code) apiParams.set('code', code);
-      if (year) apiParams.set('year', year);
-      if (period) apiParams.set('period', period);
-      if (preview) apiParams.set('preview', preview);
+      const apiParams = new URLSearchParams(window.location.search);
       apiParams.set('lang', lang);
 
-      console.log('--- Initiating Audit via Local API ---');
+      console.log('--- Initiating Audit (Locally checking cache first) ---');
       setProgress(10, lang === 'zh-CN' ? '正在开启智能查验...' : 'Initiating smart audit...');
       
-      const response = await fetch(`/api/check?${apiParams.toString()}`);
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || `Server error: ${response.status}`);
+      const localResp = await fetch(`/api/check?${apiParams.toString()}`);
+      const contentType = localResp.headers.get('content-type');
+
+      // (A) Cache Hit Case: Process as a stream as before
+      if (contentType && contentType.includes('application/x-ndjson')) {
+        console.log('Cache Hit: Streaming from local API...');
+        await handleResponseStream(localResp);
+        return;
       }
 
-      loadingEl.classList.add('hidden');
-      resultsEl.classList.remove('hidden');
-
-      // Start placeholders
-      placeholderB.start();
-      placeholderC.start();
-
-      if (!response.body) {
-        throw new Error('Response body is empty');
+      // (B) Cache Miss or Error Case: Handle JSON response
+      const serverResult = await localResp.json();
+      
+      if (serverResult.error) {
+        throw new Error(serverResult.error);
       }
 
-      console.log('Streaming started from local API...');
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+      // (C) Direct Fetch Case: Bypassing Vercel timeouts
+      if (serverResult.action === 'direct_fetch') {
+        const { api, token, params } = serverResult.config;
+        console.log('Cache Miss: Initiating DIRECT fetch to backend to avoid 10s limits...');
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        // Step 1: Initialize Task
+        const taskResp = await fetch(api, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(params)
+        });
+        if (!taskResp.ok) {
+            const errTxt = await taskResp.text();
+            throw new Error(`Task init failed: ${taskResp.status} ${errTxt}`);
+        }
+        const taskData = await taskResp.json();
+        const rawStreamUrl = taskData.stream_url;
+        if (!rawStreamUrl) throw new Error('No stream_url from backend');
+        const streamUrl = rawStreamUrl.startsWith('http') ? rawStreamUrl : `https://api.ezer.cc${rawStreamUrl}`;
+
+        // Step 2: Stream from backend with a 5-minute total duration timeout
+        const controller = new AbortController();
         
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        // 5-minute total completion timeout
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+          showError('请求数量过多，请您稍后重试');
+          console.error('[Timeout] Analysis did not complete within 5 minutes.');
+        }, 300000);
 
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          try {
-            const item = JSON.parse(trimmed);
-            await processEvent(item);
-          } catch (e) { 
-            console.error('Failed to parse stream line:', trimmed, e); 
-          }
+        console.log('Connecting to direct stream:', streamUrl);
+        const streamResp = await fetch(streamUrl, {
+            headers: { 'Authorization': `Bearer ${token}` },
+            signal: controller.signal
+        });
+
+        if (!streamResp.ok) {
+            clearTimeout(timeoutId);
+            throw new Error(`Stream download failed: ${streamResp.status}`);
+        }
+        
+        await handleResponseStream(streamResp, (item) => {
+            collectedData.push(item);
+        });
+
+        // Analysis finished successfully
+        clearTimeout(timeoutId);
+
+        // Step 3: Callback to cache the full result if we got something
+        if (collectedData.length > 0) {
+            console.log('Analysis complete. Backfilling cache...');
+            fetch('/api/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cacheKey, data: collectedData })
+            }).catch(e => console.error('Cache backfill failed', e));
         }
       }
 
-      if (buffer.trim()) {
-        try {
-          const evt = JSON.parse(buffer.trim());
-          processEvent(evt);
-        } catch (e) {}
-      }
-
     } catch (err: any) {
-      showError(err.message);
+      if (err.name === 'AbortError') {
+        // Already handled by timer above, but safety catch
+      } else {
+        showError(err.message);
+      }
+    }
+  }
+
+  /**
+   * Helper to handle stream decoding and line processing
+   */
+  async function handleResponseStream(response: Response, onEachItem?: (item: any) => void) {
+    loadingEl.classList.add('hidden');
+    resultsEl.classList.remove('hidden');
+
+    placeholderB.start();
+    placeholderC.start();
+
+    if (!response.body) throw new Error('Response body is empty');
+    
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith(':')) continue;
+        let dataStr = trimmed;
+        if (dataStr.startsWith('data: ')) dataStr = dataStr.substring(6).trim();
+        if (!dataStr || dataStr === '[DONE]') continue;
+
+        try {
+          const item = JSON.parse(dataStr);
+          if (onEachItem) onEachItem(item);
+          await processEvent(item);
+        } catch (e) { 
+          console.error('Line parse error:', dataStr, e); 
+        }
+      }
+    }
+
+    if (buffer.trim()) {
+      try {
+        const evt = JSON.parse(buffer.trim());
+        if (onEachItem) onEachItem(evt);
+        processEvent(evt);
+      } catch (e) {}
     }
   }
 
