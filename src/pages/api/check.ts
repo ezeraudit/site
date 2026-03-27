@@ -13,7 +13,10 @@ const BACKEND_API = 'https://api.ezer.cc/api/tasks';
 const BACKEND_TOKEN = import.meta.env.BACKEND_TOKEN;
 const CACHE_EXPIRY = 30 * 24 * 60 * 60; // 30 days in seconds
 
-export const GET: APIRoute = async ({ request, url }) => {
+/**
+ * GET: Handles cache checking or redirects browser to direct backend fetch.
+ */
+export const GET: APIRoute = async ({ url }) => {
   const code = url.searchParams.get('code');
   const year = url.searchParams.get('year');
   const period = url.searchParams.get('period');
@@ -29,109 +32,75 @@ export const GET: APIRoute = async ({ request, url }) => {
   const cacheKey = `cache:check:${code}:${year}:${period}:${lang}`;
 
   try {
-    // 3. Check KV Cache (if configured)
+    // 3. Check KV Cache
     if (kv) {
       let cachedData = await kv.get<any[]>(cacheKey);
 
       if (cachedData) {
         console.log(`[Cache Hit] ${cacheKey}`);
-        // Update expiry
-        await kv.expire(cacheKey, CACHE_EXPIRY);
-        return createDelayedStream(cachedData);
+        return createDelayedStream(cachedData); 
       }
-    } else {
-      console.warn('[Redis] Redis is not configured. Skipping cache.');
     }
 
-    // 4. Cache Miss - Fetch from Backend
-    console.log(`[Cache Miss] ${cacheKey}. Fetching from backend...`);
+    // 4. Cache Miss - In our new logic, we return the info for DIRECT browser fetch
+    // to bypass Vercel serverless function 10s timeout.
+    console.log(`[Cache Miss] ${cacheKey}. Redirecting frontend to direct fetch...`);
 
-    // Step A: Initiate Task
     const formattedCode = formatSymbol(code);
     const apiPeriod = period === 'full' ? 'FY' : (period || 'FY');
 
-    const initResp = await fetch(BACKEND_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${BACKEND_TOKEN}`
-      },
-      body: JSON.stringify({
-        code: formattedCode,
-        year: parseInt(year || '2024'),
-        period: apiPeriod,
-        lang: lang === 'en' ? 'en' : 'zh-CN'
-      })
-    });
-
-    if (!initResp.ok) {
-      const errText = await initResp.text();
-      throw new Error(`Backend initiation failed: ${initResp.status} ${errText}`);
-    }
-
-    const initData = await initResp.json();
-    const streamUrl = initData.stream_url;
-    if (!streamUrl) throw new Error('No stream_url returned');
-
-    // Step B: Collect Stream
-    const fullStreamUrl = streamUrl.startsWith('http') ? streamUrl : `https://api.ezer.cc${streamUrl}`;
-    const streamResp = await fetch(fullStreamUrl, {
-      headers: { 'Authorization': `Bearer ${BACKEND_TOKEN}` }
-    });
-
-    if (!streamResp.ok) throw new Error(`Stream fetch failed: ${streamResp.status}`);
-    if (!streamResp.body) throw new Error('Stream body is empty');
-
-    const reader = streamResp.body.getReader();
-    const decoder = new TextDecoder();
-    const allLines: any[] = [];
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        let trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith(':')) continue;
-        if (trimmed.startsWith('data: ')) trimmed = trimmed.substring(6).trim();
-        if (!trimmed || trimmed === '[DONE]') continue;
-
-        try {
-          allLines.push(JSON.parse(trimmed));
-        } catch (e) {
-          console.error('Failed to parse line:', trimmed);
+    return new Response(JSON.stringify({
+      action: 'direct_fetch',
+      config: {
+        api: BACKEND_API,
+        token: BACKEND_TOKEN,
+        params: {
+          code: formattedCode,
+          year: parseInt(year || '2024'),
+          period: apiPeriod,
+          lang: lang === 'en' ? 'en' : 'zh-CN'
         }
       }
-    }
-
-    if (buffer.trim()) {
-      try {
-        allLines.push(JSON.parse(buffer.trim()));
-      } catch (e) { }
-    }
-
-    // 5. Store in KV (if configured)
-    if (kv) {
-      await kv.set(cacheKey, allLines, { ex: CACHE_EXPIRY });
-      console.log(`[Cache Stored] ${cacheKey}`);
-    }
-
-    // 6. Return Streaming Response
-    return createDelayedStream(allLines);
+    }), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' } 
+    });
 
   } catch (err: any) {
-    console.error('[API Error]', err);
+    console.error('[API Error in GET]', err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 };
 
 /**
+ * POST: Allows frontend to save results into cache after completion.
+ */
+export const POST: APIRoute = async ({ request }) => {
+    if (!kv) {
+        return new Response(JSON.stringify({ error: 'KV Cache not configured' }), { status: 500 });
+    }
+
+    try {
+        const body = await request.json();
+        const { cacheKey, data } = body;
+
+        if (!cacheKey || !data) {
+            return new Response(JSON.stringify({ error: 'Missing cacheKey or data' }), { status: 400 });
+        }
+
+        await kv.set(cacheKey, data, { ex: CACHE_EXPIRY });
+        console.log(`[Cache Stored via POST] ${cacheKey}`);
+        
+        return new Response(JSON.stringify({ success: true }), { status: 200 });
+    } catch (err: any) {
+        console.error('[API Error in POST callback]', err);
+        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    }
+}
+
+/**
  * Creates a ReadableStream that outputs JSON lines with artificial delays
+ * Only used for cached results or preview data to maintain "Analysis" aesthetic.
  */
 function createDelayedStream(data: any[]) {
   const encoder = new TextEncoder();
@@ -157,23 +126,17 @@ function createDelayedStream(data: any[]) {
     async start(controller) {
       const send = async (item: any, delay = 4000) => {
         controller.enqueue(encoder.encode(JSON.stringify(item) + '\n'));
-        // Wait per item to achieve ~2 mins total duration (approx 28 items * 4s = 112s)
         await new Promise(r => setTimeout(r, delay));
       };
 
-      // 1. Group A (Normalization) - 2 items
       for (const item of groupA) await send(item, 2000);
 
-      // 2. Wait 10 seconds between A and B
       if (groupB.length > 0) {
-        console.log('Waiting 10s for Group B...');
         await new Promise(r => setTimeout(r, 10000));
         for (const item of groupB) await send(item, 4000);
       }
 
-      // 3. Wait 10 seconds between B and C
       if (groupC.length > 0) {
-        console.log('Waiting 10s for Group C...');
         await new Promise(r => setTimeout(r, 10000));
         for (const item of groupC) await send(item, 4000);
       }
