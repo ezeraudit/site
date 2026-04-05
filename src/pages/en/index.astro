@@ -1,4 +1,21 @@
 ---
+// Redirect logic: if logged in and not from internal site, go to search page
+const cookies = Astro.request.headers.get('cookie') || '';
+const isLoggedIn = cookies.includes('sb-msufgvqofnihylcnxyac-auth-token');
+
+const referer = Astro.request.headers.get('referer');
+let isInternal = false;
+if (referer) {
+  try {
+    const url = new URL(referer);
+    isInternal = url.hostname.includes('ezer.cc') || url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  } catch (e) {}
+}
+
+if (isLoggedIn && !isInternal) {
+  return Astro.redirect('/en/search/');
+}
+
 import Layout from "../../layouts/Layout.astro";
 import HeroHome from "../../components/HeroHome.astro";
 import TextMarquee from "../../components/TextMarquee.astro";
