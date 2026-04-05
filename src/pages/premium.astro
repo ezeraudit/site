@@ -345,7 +345,6 @@ const t = useTranslations(lang);
       joinBtn.disabled = true;
       btnText.classList.add('hidden');
       loader.classList.remove('hidden');
-      messageEl.classList.add('hidden');
 
       try {
         const { error } = await window.auth.client
