@@ -226,6 +226,10 @@ const premiumUrl = lang === 'zh' ? '/premium/?from=quota' : '/en/premium/?from=q
   }
 
   // Run on load and after navigation
-  initQuotaBanner();
+  if (document.readyState === 'complete') {
+    initQuotaBanner();
+  } else {
+    window.addEventListener('load', initQuotaBanner);
+  }
   document.addEventListener('astro:after-swap', initQuotaBanner);
 </script>

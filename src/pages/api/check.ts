@@ -23,11 +23,11 @@ async function getSupabaseUser(cookies: string) {
   if (!cookies) return null;
   const match = cookies.match(/sb-msufgvqofnihylcnxyac-auth-token=([^;]+)/);
   if (!match) return null;
-  
+
   try {
     const sessionData = JSON.parse(decodeURIComponent(match[1]));
     const accessToken = Array.isArray(sessionData) ? sessionData[0] : sessionData.access_token;
-    
+
     if (!accessToken) return null;
 
     const resp = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
@@ -36,10 +36,15 @@ async function getSupabaseUser(cookies: string) {
         'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XMPIdUpNn_dPH7iKdGK_Zg_J8InT4c9'
       }
     });
-    
-    if (!resp.ok) return null;
+
+    if (!resp.ok) {
+      const errorText = await resp.text();
+      console.error('[Quota Debug] Supabase Auth verification failed:', resp.status, errorText);
+      return null;
+    }
     return await resp.json();
   } catch (e) {
+    console.error('[Quota Debug] getSupabaseUser exception:', e);
     return null;
   }
 }
@@ -66,7 +71,7 @@ async function checkAndUpdateQuota(user: any) {
 
   let plan = null;
   const plans = await resp.json();
-  
+
   if (plans && plans.length > 0) {
     plan = plans[0];
   } else {
@@ -78,7 +83,7 @@ async function checkAndUpdateQuota(user: any) {
       quota_remaining: 3,
       last_used_date: new Date().toISOString().split('T')[0]
     };
-    
+
     await fetch(`${SUPABASE_URL}/rest/v1/user_plans`, {
       method: 'POST',
       headers: {
@@ -97,7 +102,7 @@ async function checkAndUpdateQuota(user: any) {
   // 3. Lazy Reset Logic
   const today = new Date().toISOString().split('T')[0];
   let remaining = plan.quota_remaining;
-  
+
   if (plan.last_used_date !== today) {
     remaining = 3;
   }
@@ -140,17 +145,14 @@ export const GET: APIRoute = async ({ url, request }) => {
   // 1.5 Quota Enforcement (Server Side)
   const cookies = (request as any).headers.get('cookie') || '';
   const user = await getSupabaseUser(cookies);
-  
+
   if (!user) {
-    // If not authenticated and not preview, we can either allow (if search is public)
-    // or block. The frontend check.astro redirects to login, so here we just proceed
-    // or block if we want to be strict.
-    // For now, let's allow but we won't have a UID to track.
-    console.warn('[Quota] Request without authentication');
+    console.warn('[Quota Debug] Request skipped quota because user is null (Cookie match failed or token invalid)');
   } else {
     const quota = await checkAndUpdateQuota(user);
+    console.log('[Quota Debug] Quota check result:', quota);
     if (!quota.allowed) {
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: 'Quota exceeded',
         code: 'QUOTA_EXCEEDED'
       }), { status: 403 });
@@ -167,7 +169,7 @@ export const GET: APIRoute = async ({ url, request }) => {
 
       if (cachedData) {
         console.log(`[Cache Hit] ${cacheKey}`);
-        return createDelayedStream(cachedData); 
+        return createDelayedStream(cachedData);
       }
     }
 
@@ -190,9 +192,9 @@ export const GET: APIRoute = async ({ url, request }) => {
           lang: lang === 'en' ? 'en' : 'zh-CN'
         }
       }
-    }), { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json' } 
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (err: any) {
@@ -205,26 +207,26 @@ export const GET: APIRoute = async ({ url, request }) => {
  * POST: Allows frontend to save results into cache after completion.
  */
 export const POST: APIRoute = async ({ request }) => {
-    if (!kv) {
-        return new Response(JSON.stringify({ error: 'KV Cache not configured' }), { status: 500 });
+  if (!kv) {
+    return new Response(JSON.stringify({ error: 'KV Cache not configured' }), { status: 500 });
+  }
+
+  try {
+    const body = await request.json();
+    const { cacheKey, data } = body;
+
+    if (!cacheKey || !data) {
+      return new Response(JSON.stringify({ error: 'Missing cacheKey or data' }), { status: 400 });
     }
 
-    try {
-        const body = await request.json();
-        const { cacheKey, data } = body;
+    await kv.set(cacheKey, data, { ex: CACHE_EXPIRY });
+    console.log(`[Cache Stored via POST] ${cacheKey}`);
 
-        if (!cacheKey || !data) {
-            return new Response(JSON.stringify({ error: 'Missing cacheKey or data' }), { status: 400 });
-        }
-
-        await kv.set(cacheKey, data, { ex: CACHE_EXPIRY });
-        console.log(`[Cache Stored via POST] ${cacheKey}`);
-        
-        return new Response(JSON.stringify({ success: true }), { status: 200 });
-    } catch (err: any) {
-        console.error('[API Error in POST callback]', err);
-        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
-    }
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+  } catch (err: any) {
+    console.error('[API Error in POST callback]', err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+  }
 }
 
 /**

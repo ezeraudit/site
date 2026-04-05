@@ -436,6 +436,10 @@ const t = useTranslations(lang);
     });
   }
 
-  initPremiumPage();
+  if (document.readyState === 'complete') {
+    initPremiumPage();
+  } else {
+    window.addEventListener('load', initPremiumPage);
+  }
   document.addEventListener('astro:after-swap', initPremiumPage);
 </script>
