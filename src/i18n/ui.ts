@@ -63,7 +63,7 @@ export const ui = {
     'check.confidence': '置信说明',
     'check.thought': '详细分析',
     'check.final-result': '最终结果',
-    'nav.premium': '会员',
+    'nav.premium': '专业版',
     'premium.welcome': '欢迎加入付费计划',
     'premium.desc': '感谢您关注我们！我们的付费订阅还没有正式推出，您可以现在加入等候名单，稍后正式推出时可以享受额外7折优惠。',
     'premium.join_waitlist': '加入等候名单',

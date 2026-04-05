@@ -92,10 +92,59 @@ async function checkAndUpdateQuota(user: any) {
     return { allowed: true, remaining: 2 }; // Just used one
   }
 
-  if (plan.plan_type === 'premium') return { allowed: true, remaining: 99 };
-
-  // 3. Lazy Reset Logic
   const today = new Date().toISOString().split('T')[0];
+  const currentMonth = today.substring(0, 7); // "YYYY-MM"
+
+  // 3. Handle Premium Logic
+  if (plan.plan_type === 'premium') {
+    // Check for Expiry
+    if (plan.premium_end_date) {
+      const endDate = new Date(plan.premium_end_date);
+      if (endDate < new Date()) {
+        // Plan Expired: Revert to free
+        await fetch(`${SUPABASE_URL}/rest/v1/user_plans?uid=eq.${uid}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            plan_type: 'free',
+            quota_remaining: 3 - 1, // Reset to 3 but consume one
+            last_used_date: today,
+            updated_at: new Date().toISOString()
+          })
+        });
+        return { allowed: true, remaining: 2 };
+      }
+    }
+
+    // Monthly Reset Logic for Premium
+    let remaining = plan.quota_remaining;
+    const lastMonth = plan.last_used_date ? plan.last_used_date.substring(0, 7) : "";
+    if (lastMonth !== currentMonth) {
+      remaining = 0; // Reset to 0 for new month
+    }
+
+    // Update Quota (minus values show usage)
+    await fetch(`${SUPABASE_URL}/rest/v1/user_plans?uid=eq.${uid}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        quota_remaining: remaining - 1,
+        last_used_date: today,
+        updated_at: new Date().toISOString()
+      })
+    });
+    return { allowed: true, remaining: 99 };
+  }
+
+  // 4. Lazy Reset Logic for Free Users (Daily)
   let remaining = plan.quota_remaining;
 
   if (plan.last_used_date !== today) {
@@ -104,7 +153,7 @@ async function checkAndUpdateQuota(user: any) {
 
   if (remaining <= 0) return { allowed: false };
 
-  // 4. Update Quota
+  // 5. Update Quota for Free Users
   await fetch(`${SUPABASE_URL}/rest/v1/user_plans?uid=eq.${uid}`, {
     method: 'PATCH',
     headers: {
