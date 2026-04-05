@@ -37,14 +37,9 @@ async function getSupabaseUser(cookies: string) {
       }
     });
 
-    if (!resp.ok) {
-      const errorText = await resp.text();
-      console.error('[Quota Debug] Supabase Auth verification failed:', resp.status, errorText);
-      return null;
-    }
+    if (!resp.ok) return null;
     return await resp.json();
   } catch (e) {
-    console.error('[Quota Debug] getSupabaseUser exception:', e);
     return null;
   }
 }
@@ -146,11 +141,8 @@ export const GET: APIRoute = async ({ url, request }) => {
   const cookies = (request as any).headers.get('cookie') || '';
   const user = await getSupabaseUser(cookies);
 
-  if (!user) {
-    console.warn('[Quota Debug] Request skipped quota because user is null (Cookie match failed or token invalid)');
-  } else {
+  if (user) {
     const quota = await checkAndUpdateQuota(user);
-    console.log('[Quota Debug] Quota check result:', quota);
     if (!quota.allowed) {
       return new Response(JSON.stringify({
         error: 'Quota exceeded',

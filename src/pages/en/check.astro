@@ -63,8 +63,11 @@ if (preview !== 'true') {
       <div class="error-container hidden" id="error-container">
         <div class="error-icon">⚠️</div>
         <p class="error-text" id="error-text">{t("check.error")}</p>
-        <a id="back-link" href={lang === "zh" ? "/search" : "/en/search"} class="back-btn">
+        <a id="back-link" href={lang === "zh" ? "/search/" : "/en/search/"} class="back-btn">
           ← {lang === "zh" ? "返回搜索" : "Back to Search"}
+        </a>
+        <a id="upgrade-link" href={lang === "zh" ? "/premium/?from=exceed" : "/en/premium/?from=exceed"} class="back-btn hidden">
+          {t("quota.upgrade_now")}
         </a>
       </div>
 
@@ -1136,7 +1139,20 @@ if (preview !== 'true') {
     if (msg) console.error('[Analysis Error Detail]:', msg);
     loadingEl.classList.add('hidden');
     errorEl.classList.remove('hidden');
-    // errorTextEl will keep the i18n value from HTML
+
+    const backLink = document.getElementById('back-link');
+    const upgradeLink = document.getElementById('upgrade-link');
+
+    // If it's a quota error, swap buttons
+    if (msg && msg.toLowerCase().includes('quota exceeded')) {
+      errorTextEl.textContent = i18n['quota.limit_reached'].replace('{h}', '24'); // Defaulting to 24h as a placeholder if not known
+      if (backLink) backLink.classList.add('hidden');
+      if (upgradeLink) upgradeLink.classList.remove('hidden');
+    } else {
+      // Normal error
+      if (backLink) backLink.classList.remove('hidden');
+      if (upgradeLink) upgradeLink.classList.add('hidden');
+    }
   }
 
   async function typeText(el: HTMLElement, text: string, speed = 20) {
