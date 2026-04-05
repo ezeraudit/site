@@ -27,19 +27,23 @@ import logo12 from "../assets/vercel_transparent.png";
 
 ---
 
-<Layout title="Ezer - 对抗式审计级财报分析系统">
+<Layout 
+  title="对抗式审计级财报分析系统" 
+  description="弈泽财报分析 (Ezer Audit) 领先的对抗式审计级财报分析系统。通过红蓝对抗机制，为投资者提供专业级的财务风险挖掘、数据交叉验证和结构化审计报告。"
+  keywords="财报分析, 财务审计, 股票投资, 风险检测, 弈泽财报, 审计级AI, 红蓝对抗"
+>
   <HeroHome
     title="对抗式 审计级 财报分析"
-    subtitle="Ezer将专业研究员的流程系统化，打通「解析-纠察-验证-复核-生成」全链路，助你快速抓住真正的风险点。"
+    subtitle="弈泽将专业研究员的流程系统化，打通「解析-纠察-验证-复核-生成」全链路，助你快速抓住真正的风险点。"
     cta={{
       title: "立即体验",
-      url: "/search/",
+      url: "/search/?preview=true",
     }}
   />
 
   <Introducing
-    title="Ezer不是普通的财报助手，而是小白也能快速上手的专业分析系统"
-    text="针对财报阅读门槛高、模型不可靠、工具不匹配等痛点，Ezer 行业首创红蓝对抗验证逻辑。红队挖掘疑点，蓝队反证校验，解决通用模型“黑盒输出、不可靠”的核心顽疾。"
+    title="弈泽不是普通的财报助手，而是小白也能快速上手的专业分析系统"
+    text="针对财报阅读门槛高、模型不可靠、工具不匹配等痛点，弈泽 行业首创红蓝对抗验证逻辑。红队挖掘疑点，蓝队反证校验，解决通用模型“黑盒输出、不可靠”的核心顽疾。"
     cta={{
       title: "开始分析",
       url: "/search/",
@@ -137,33 +141,35 @@ import logo12 from "../assets/vercel_transparent.png";
           duration: "月",
         },
         link: {
-          title: "立即使用",
+          title: "开始使用",
           url: "/check/?preview=true",
         },
         features: [
-          { title: "基础财报解析" },
-          { title: "标准红蓝对抗分析" },
+          { title: "每日3次财报分析" },
+          { title: "红蓝对抗分析" },
+          { title: "数据交叉验证" },
           { title: "社区支持", disabled: true },
-          { title: "多公司指标对比", disabled: true },
           { title: "导出专业 PDF 报告", disabled: true },
         ],
       },
       {
-        title: "增值服务版",
+        title: "高级版",
         price: {
-          amount: "￥19.9",
+          amount: "￥29.99",
+          oldAmount: "￥49.99",
           duration: "月",
         },
+        badge: "限时优惠",
         link: {
-          title: "了解更多",
-          url: "/search/",
+          title: "立即购买",
+          url: "/premium/?from=home",
         },
         features: [
-          { title: "更高额度分析调用" },
-          { title: "核心财务指标一键对比" },
+          { title: "无限次财报分析" },
+          { title: "红蓝对抗分析" },
+          { title: "数据交叉验证" },
+          { title: "社区支持" },
           { title: "导出专业 PDF 报告" },
-          { title: "自定义分析重点" },
-          { title: "专属 B 端技术接口" },
         ],
       },
     ]}
@@ -172,12 +178,12 @@ import logo12 from "../assets/vercel_transparent.png";
   <Faqs
     title="常见问题"
     mobileTitle="FAQs"
-    subtitle="快速了解 Ezer 的核心竞争力。"
+    subtitle="快速了解 弈泽 的核心竞争力。"
     items={[
       {
-        question: "Ezer 和通用大模型（如 ChatGPT）分析财报有什么区别？",
+        question: "弈泽 和通用大模型（如 ChatGPT）分析财报有什么区别？",
         answer:
-          "通用大模型缺乏稳定的研究流程且易产生“幻觉”。Ezer 强调编排、验证、证据链与复核建议，结果可追溯、可验证。",
+          "通用大模型缺乏稳定的研究流程且易产生“幻觉”。弈泽 强调编排、验证、证据链与复核建议，结果可追溯、可验证。",
       },
       {
         question: "什么是“红蓝对抗”验证机制？",

@@ -26,13 +26,17 @@ import logo11 from "../../assets/supabase_transparent.png";
 import logo12 from "../../assets/vercel_transparent.png";
 ---
 
-<Layout title="Ezer - Adversarial Audit-Grade Financial Analysis System">
+<Layout 
+  title="Adversarial Audit-Grade Financial Analysis System"
+  description="Ezer Audit: The leading adversarial audit-grade financial analysis system. We provide investors with professional financial risk discovery and cross-validation through multi-agent collaboration."
+  keywords="financial analysis, stock audit, investment risk, Ezer Audit, AI financial report, red-blue adversarial, fintech"
+>
   <HeroHome
     title="Adversarial Audit-Grade Fin.Analysis"
     subtitle="Ezer systematizes professional research workflows, streamlining 'Parsing - Policing - Verification - Review - Generation' to help you pinpoint real risks instantly."
     cta={{
       title: "Get Started",
-      url: "/en/search/",
+      url: "/en/search/?preview=true",
     }}
   />
 
@@ -130,39 +134,41 @@ import logo12 from "../../assets/vercel_transparent.png";
     subtitle="Start for free, upgrade for in-depth research. No hidden fees, no long-term commitments."
     items={[
       {
-        title: "Free Plan",
+        title: "Free",
         price: {
           amount: "$0",
           duration: "month",
         },
         link: {
-          title: "Start for Free",
+          title: "Get Started",
           url: "/en/check/?preview=true",
         },
         features: [
-          { title: "Basic Financial Parsing" },
-          { title: "Standard Adversarial Analysis" },
+          { title: "3 Financial Analyses Daily" },
+          { title: "Red-Blue Adversarial Analysis" },
+          { title: "Data Cross-Verification" },
           { title: "Community Support", disabled: true },
-          { title: "Multi-Company Comparison", disabled: true },
-          { title: "Professional PDF Export", disabled: true },
+          { title: "Export Professional PDF Reports", disabled: true },
         ],
       },
       {
-        title: "Premium Plan",
+        title: "Premium",
         price: {
-          amount: "$3",
+          amount: "$4.99",
+          oldAmount: "$7.99",
           duration: "month",
         },
+        badge: "Limited",
         link: {
-          title: "Get Started",
-          url: "/en/search/",
+          title: "Upgrade Now",
+          url: "/en/premium/?from=home",
         },
         features: [
-          { title: "High-Volume Analysis Calls" },
-          { title: "One-Click Indicator Comparison" },
-          { title: "Professional PDF Export" },
-          { title: "Custom Analysis Focus" },
-          { title: "Exclusive B2B API Access" },
+          { title: "Unlimited Financial Analyses" },
+          { title: "Red-Blue Adversarial Analysis" },
+          { title: "Data Cross-Verification" },
+          { title: "Community Support" },
+          { title: "Export Professional PDF Reports" },
         ],
       },
     ]}

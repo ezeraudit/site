@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 import { getLangFromUrl, useTranslations } from "../../i18n/utils";
 import { ui } from "../../i18n/ui";
+import QuotaBanner from "../../components/QuotaBanner.astro";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -33,7 +34,11 @@ if (preview !== 'true') {
 <!-- Injected i18n for client-side script -->
 <meta name="check-i18n" content={JSON.stringify(translations)} />
 
-<Layout title={t("check.title")}>
+<Layout 
+  title={t("check.title")}
+  description="Deep red-blue adversarial financial report analysis. Analyze financial indicators, detect potential risks, and receive investment recommendations with complete evidence."
+  keywords="financial deep analysis, audit report generation, investment risks, financial performance visualization"
+>
   <div class="check-page">
     <div class="u-container">
       <!-- Page Header -->
@@ -134,14 +139,9 @@ if (preview !== 'true') {
           </div>
         </div>
         
-        <!-- Preview CTA Button -->
-        <div id="preview-cta-container" class="preview-cta-container hidden">
-          <a href={lang === 'zh' ? '/search/' : '/en/search/'} class="cta-button">
-            {lang === 'zh' ? '立即开启正式分析' : 'Start Full Analysis Now'}
-          </a>
-        </div>
       </div>
     </div>
+    <QuotaBanner />
   </div>
 </Layout>
 
@@ -785,48 +785,7 @@ if (preview !== 'true') {
     50% { opacity: 0.7; }
   }
 
-  /* ── Preview CTA ── */
-  .preview-cta-container {
-    display: flex;
-    justify-content: center;
-    padding: 2rem 0 4rem;
-    animation: fadeIn 0.8s ease-out;
-  }
-
-  .cta-button {
-    display: inline-block;
-    padding: 1.1rem 2.8rem;
-    background: linear-gradient(135deg, var(--color-brand-1), #9333ea);
-    color: white !important;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1.15rem;
-    text-decoration: none;
-    box-shadow: 0 10px 20px -5px rgba(var(--rgb-brand-1), 0.4);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .cta-button:hover {
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 15px 30px -5px rgba(var(--rgb-brand-1), 0.5);
-    filter: brightness(1.1);
-  }
-
-  .cta-button:active {
-    transform: translateY(-1px) scale(0.98);
-  }
-
-  @media (max-width: 640px) {
-    .cta-button {
-      padding: 1.25rem 2rem;
-      width: 100%;
-      text-align: center;
-      font-size: 1.1rem;
-    }
-  }
-
-  /* ── Utility ── */
+  /* ── Preview CTA ── */  /* ── Utility ── */
   .hidden {
     display: none !important;
   }
@@ -1428,6 +1387,37 @@ if (preview !== 'true') {
     const cacheKey = `cache:check:${code}:${year}:${period}:${lang}`;
 
     try {
+      // ── Quota Check ──
+      const session = await window.auth?.getSession();
+      if (!preview && session) {
+        const { data: plan } = await window.auth.client
+          .from('user_plans')
+          .select('*')
+          .eq('uid', session.user.id)
+          .single();
+        
+        if (plan && plan.plan_type === 'free') {
+          const today = new Date().toISOString().split('T')[0];
+          let remaining = plan.quota_remaining;
+          if (plan.last_used_date !== today) remaining = 3;
+
+          if (remaining <= 0) {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setUTCHours(24, 0, 0, 0);
+            const hours = Math.ceil((tomorrow - now) / 3600000);
+            
+            const limitMsg = i18n['quota.limit_reached'].replace('{h}', hours.toString());
+            const upgradeNow = i18n['quota.upgrade_now'];
+            const premiumUrl = lang === 'en' ? '/en/premium/?from=exceed' : '/premium/?from=exceed';
+            
+            errorTextEl.innerHTML = `${limitMsg} <a href="${premiumUrl}" style="color:var(--color-brand-1);font-weight:bold;">${upgradeNow}</a>`;
+            showError();
+            return;
+          }
+        }
+      }
+
       const apiParams = new URLSearchParams(window.location.search);
       apiParams.set('lang', lang);
 
@@ -1476,11 +1466,12 @@ if (preview !== 'true') {
         const streamUrl = rawStreamUrl.startsWith('http') ? rawStreamUrl : `https://api.ezer.cc${rawStreamUrl}`;
         const resultUrl = rawResultUrl ? (rawResultUrl.startsWith('http') ? rawResultUrl : `https://api.ezer.cc${rawResultUrl}`) : null;
 
-        // Step 2: Stream from backend with a 5-minute total duration timeout
+        // Step 2: Stream from backend with a 5-minute initial connection timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
+        let isSuccessfullyCompleted = false;
+        let timeoutId = setTimeout(() => {
           controller.abort();
-          showError(isEn ? 'Analysis timeout, please refresh later' : '分析超时，请稍后刷新重试');
+          showError(isEn ? 'Connection timeout, please refresh later' : '分析连接超时，请稍后刷新重试');
         }, 300000);
 
         console.log('Connecting to direct stream:', streamUrl);
@@ -1495,9 +1486,26 @@ if (preview !== 'true') {
         }
         
         // Handle SSE stream using the pattern from public/examples/frontend_call_example_v1.md
-        await handleResponseStream(streamResp, (item) => {
-            collectedData.push(item);
-        }, true); // Pass isSSE = true
+        await handleResponseStream(
+            streamResp, 
+            (item) => {
+                collectedData.push(item);
+                // Check if this is a completion event
+                if (item.event === 'final_result' || item.event === 'result') {
+                    isSuccessfullyCompleted = true;
+                }
+            }, 
+            true, // isSSE
+            () => {
+                // onFirstChunk: Clear initial timeout and start a new 5-minute data transfer timeout
+                console.log('First chunk received. Resetting timeout for data transfer...');
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    controller.abort();
+                    showError(isEn ? 'Report generation timeout, please refresh later' : '报告生成超时，请稍后刷新重试');
+                }, 300000);
+            }
+        );
 
         clearTimeout(timeoutId);
 
@@ -1523,9 +1531,9 @@ if (preview !== 'true') {
             }
         }
 
-        // Step 4: Backfill Cache
-        if (collectedData.length > 0) {
-            console.log('Analysis complete. Backfilling cache...');
+        // Step 4: Backfill Cache only if successfully completed
+        if (isSuccessfullyCompleted && collectedData.length > 0) {
+            console.log('Analysis complete and verified. Backfilling cache...');
             fetch('/api/check', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1547,7 +1555,12 @@ if (preview !== 'true') {
    * Helper to handle stream decoding and line processing
    * Supports both NDR-JSON and SSE (with data: prefix and \n\n separator)
    */
-  async function handleResponseStream(response: Response, onEachItem?: (item: any) => void, isSSE = false) {
+  async function handleResponseStream(
+    response: Response, 
+    onEachItem?: (item: any) => void, 
+    isSSE = false,
+    onFirstChunk?: () => void
+  ) {
     loadingEl.classList.add('hidden');
     resultsEl.classList.remove('hidden');
 
@@ -1559,11 +1572,17 @@ if (preview !== 'true') {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let isFirstChunk = true;
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       
+      if (isFirstChunk) {
+        isFirstChunk = false;
+        if (onFirstChunk) onFirstChunk();
+      }
+
       buffer += decoder.decode(value, { stream: true });
 
       if (isSSE) {
@@ -1651,11 +1670,5 @@ if (preview !== 'true') {
   };
   setupAreaScroll();
 
-  main().then(() => {
-    // Show CTA if in preview mode
-    if (preview === 'true') {
-      const cta = document.getElementById('preview-cta-container');
-      if (cta) cta.classList.remove('hidden');
-    }
-  });
+  main();
 </script>

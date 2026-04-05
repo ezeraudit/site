@@ -8,9 +8,12 @@ import LanguageSwitcher from "../components/LanguageSwitcher.astro";
 import ThemeToggle from "../components/ThemeToggle.astro";
 import SmoothScroll from "../components/SmoothScroll.astro";
 
-const { title } = Astro.props;
+const { title, description, keywords } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+
+const metaDescription = description || t("seo.default_description");
+const metaKeywords = keywords || t("seo.default_keywords");
 
 const links = [
   { title: t("nav.home"), url: lang === 'zh' ? '/' : '/en/' },
@@ -23,11 +26,13 @@ const links = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={metaDescription} />
+    <meta name="keywords" content={metaKeywords} />
     <Font cssVariable="--font-roboto-slab" preload />
     <Font cssVariable="--font-inter" preload />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
-    <title>{title}</title>
+    <title>{title ? `${title} - ${t("site.name")}` : t("site.name")}</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6365WW8WFY"></script>
     <script is:inline>
@@ -58,7 +63,7 @@ const links = [
     <a href="#main" class="skip-link">{t("accessibility.skip-to-content")}</a>
     <Header
       logoUrl={lang === 'zh' ? '/' : '/en/'}
-      logoAlt="Ezer"
+      logoAlt={t("site.name")}
       links={links}
       link2={{ title: t("nav.signin"), url: "#" }}
     >
@@ -70,7 +75,7 @@ const links = [
     <main id="main">
       <slot />
     </main>
-    <Footer logoUrl={lang === 'zh' ? '/' : '/en/'} logoAlt="Ezer Audit" links={links} />
+    <Footer logoUrl={lang === 'zh' ? '/' : '/en/'} logoAlt={t("footer.logoAlt")} links={links} />
     <SmoothScroll />
   </body>
 </html>

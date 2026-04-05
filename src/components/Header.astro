@@ -1,11 +1,14 @@
 ---
 import Button from "./Button.astro";
-import Logo from "../assets/logo.svg";
+import EzerCnLogo from "../assets/ezer-cn.svg";
+import EzerEnLogo from "../assets/ezer-en.svg";
 import type { Link } from "../types";
 import { getLangFromUrl, useTranslations } from "../i18n/utils";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+
+const SelectedLogo = lang === "zh" ? EzerCnLogo : EzerEnLogo;
 
 interface Props {
   logoUrl: string;
@@ -29,7 +32,7 @@ const { logoUrl, logoAlt, link1, link2, links } = Astro.props;
     <div class="inner u-container">
       <div class="wrapper">
         <a class="logo" href={logoUrl}>
-          <Logo />
+          <SelectedLogo />
           <span class="u-sr-only">{logoAlt}</span>
         </a>
 
@@ -150,8 +153,13 @@ const { logoUrl, logoAlt, link1, link2, links } = Astro.props;
 
     svg {
       width: auto;
-      height: 1.5rem;
+      height: 2.5rem;
+      transition: filter 0.3s ease;
     }
+  }
+
+  :global([data-theme="dark"]) .logo svg {
+    filter: invert(1) brightness(2);
   }
 
   .menu {

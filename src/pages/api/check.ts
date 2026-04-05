@@ -5,6 +5,9 @@ import { sampleData } from '../../data/sampleData';
 const kvRestUrl = import.meta.env.UPSTASH_REDIS_KV_REST_API_URL;
 const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
 
+const SUPABASE_URL = "https://msufgvqofnihylcnxyac.supabase.co";
+const SUPABASE_SERVICE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+
 const kv = (kvRestUrl && kvRestToken)
   ? new Redis({ url: kvRestUrl, token: kvRestToken })
   : null;
@@ -14,9 +17,115 @@ const BACKEND_TOKEN = import.meta.env.BACKEND_TOKEN;
 const CACHE_EXPIRY = 30 * 24 * 60 * 60; // 30 days in seconds
 
 /**
+ * Helper to get user via Supabase Auth
+ */
+async function getSupabaseUser(cookies: string) {
+  if (!cookies) return null;
+  const match = cookies.match(/sb-msufgvqofnihylcnxyac-auth-token=([^;]+)/);
+  if (!match) return null;
+  
+  try {
+    const sessionData = JSON.parse(decodeURIComponent(match[1]));
+    const accessToken = Array.isArray(sessionData) ? sessionData[0] : sessionData.access_token;
+    
+    if (!accessToken) return null;
+
+    const resp = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_XMPIdUpNn_dPH7iKdGK_Zg_J8InT4c9'
+      }
+    });
+    
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Helper to manage quota via Supabase REST
+ */
+async function checkAndUpdateQuota(user: any) {
+  if (!SUPABASE_SERVICE_KEY) {
+    console.warn('SUPABASE_SERVICE_ROLE_KEY not configured, skipping quota check');
+    return { allowed: true };
+  }
+
+  const uid = user.id;
+  const email = user.email;
+
+  // 1. Get current plan
+  let resp = await fetch(`${SUPABASE_URL}/rest/v1/user_plans?uid=eq.${uid}`, {
+    headers: {
+      'apikey': SUPABASE_SERVICE_KEY,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+    }
+  });
+
+  let plan = null;
+  const plans = await resp.json();
+  
+  if (plans && plans.length > 0) {
+    plan = plans[0];
+  } else {
+    // 2. Create default free plan if not exists
+    const newPlan = {
+      uid,
+      email,
+      plan_type: 'free',
+      quota_remaining: 3,
+      last_used_date: new Date().toISOString().split('T')[0]
+    };
+    
+    await fetch(`${SUPABASE_URL}/rest/v1/user_plans`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(newPlan)
+    });
+    return { allowed: true, remaining: 2 }; // Just used one
+  }
+
+  if (plan.plan_type === 'premium') return { allowed: true, remaining: 99 };
+
+  // 3. Lazy Reset Logic
+  const today = new Date().toISOString().split('T')[0];
+  let remaining = plan.quota_remaining;
+  
+  if (plan.last_used_date !== today) {
+    remaining = 3;
+  }
+
+  if (remaining <= 0) return { allowed: false };
+
+  // 4. Update Quota
+  await fetch(`${SUPABASE_URL}/rest/v1/user_plans?uid=eq.${uid}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_SERVICE_KEY,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      quota_remaining: remaining - 1,
+      last_used_date: today,
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  return { allowed: true, remaining: remaining - 1 };
+}
+
+/**
  * GET: Handles cache checking or redirects browser to direct backend fetch.
  */
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, request }) => {
   const code = url.searchParams.get('code');
   const year = url.searchParams.get('year');
   const period = url.searchParams.get('period');
@@ -26,6 +135,26 @@ export const GET: APIRoute = async ({ url }) => {
   // 1. Handle "No Parameters" or "Preview" case - Load sample data
   if (preview || (!code && !year && !period)) {
     return createDelayedStream(sampleData);
+  }
+
+  // 1.5 Quota Enforcement (Server Side)
+  const cookies = (request as any).headers.get('cookie') || '';
+  const user = await getSupabaseUser(cookies);
+  
+  if (!user) {
+    // If not authenticated and not preview, we can either allow (if search is public)
+    // or block. The frontend check.astro redirects to login, so here we just proceed
+    // or block if we want to be strict.
+    // For now, let's allow but we won't have a UID to track.
+    console.warn('[Quota] Request without authentication');
+  } else {
+    const quota = await checkAndUpdateQuota(user);
+    if (!quota.allowed) {
+      return new Response(JSON.stringify({ 
+        error: 'Quota exceeded',
+        code: 'QUOTA_EXCEEDED'
+      }), { status: 403 });
+    }
   }
 
   // 2. Cache Key
