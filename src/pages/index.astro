@@ -45,51 +45,109 @@ import logo12 from "../assets/vercel_transparent.png";
 ---
 
 <Layout 
-  title="对抗式审计级财报分析系统" 
-  description="弈泽财报分析 (Ezer Audit) 领先的对抗式审计级财报分析系统。通过红蓝对抗机制，为投资者提供专业级的财务风险挖掘、数据交叉验证和结构化审计报告。"
-  keywords="财报分析, 财务审计, 股票投资, 风险检测, 弈泽财报, 审计级AI, 红蓝对抗"
+  title="廉价 AI 做总结，Ezer 做审计"
+  description="Ezer 不走廉价模型捷径。我们使用自研财报组件和高价值基础大模型，构建多阶段财报审计链路，帮助用户获得更严肃的财报分析结果。"
+  keywords="财报分析, 财务审计, 股票投资, 高价值模型, 自研财报模型, Ezer Audit, 证据复核"
 >
   <HeroHome
-    title="对抗式 审计级 财报分析"
-    subtitle="弈泽将专业研究员的流程系统化，打通「解析-纠察-验证-复核-生成」全链路，助你快速抓住真正的风险点。"
+    title="Cheap AI summarizes. Ezer audits."
+    subtitle="廉价 AI 做总结，Ezer 做审计。我们不追求最低推理成本，而是使用自研财报组件和高价值基础大模型，完成更高成本、更严格的财报分析链路。"
     cta={{
-      title: "立即体验",
+      title: "开始分析",
       url: "/check/?preview=true",
     }}
   />
 
   <Introducing
-    title="弈泽不是普通的财报助手，而是小白也能快速上手的专业分析系统"
-    text="针对财报阅读门槛高、模型不可靠、工具不匹配等痛点，弈泽 行业首创红蓝对抗验证逻辑。红队挖掘疑点，蓝队反证校验，解决通用模型“黑盒输出、不可靠”的核心顽疾。"
+    title="Ezer 是审计级财报分析系统"
+    text="Ezer 面向财报研究与风险识别场景，将数据标准化、专业指标拆解、行业信息补充和审计式复核串成完整链路。它不是把财报改写成摘要，而是把财报转化为可追溯、可复核、可继续深挖的分析结果。"
     cta={{
-      title: "开始分析",
+      title: "查看示例报告",
       url: "/search/",
     }}
   />
 
+  <section class="model-proof">
+    <div class="u-container">
+      <div class="model-proof__grid">
+        <div class="model-proof__copy" data-sy-reveal="slideUp">
+          <p class="model-proof__eyebrow">EFFECTIVE INPUT DENSITY</p>
+          <h2 class="u-heading model-proof__title">同样是 AI，差距在有效输入密度</h2>
+          <p class="u-text model-proof__text">
+            用户自己把 PDF 喂给网页端 AI，通常会把大量上下文消耗在目录、页眉页脚、表格错位、重复文本和格式噪声上。即使网页端标称有 30k-60k token 上下文，换算成同等密度的结构化财报信息，往往只剩约 8k-10k token 的有效分析输入。
+          </p>
+          <p class="u-text model-proof__text">
+            Ezer 会先完成解析、清洗、标准化和压缩，再把平均约 80k token 的高密度结构化数据投入模型链路。更专业的编排流程、更贴近实际投资暗雷的深度审计，再加上更大量的有效数据输入，才是用户选择 Ezer 的原因。
+          </p>
+        </div>
+        <div class="input-density-card" data-sy-reveal="blurIn">
+          <div class="density-path is-diy">
+            <div class="density-head">
+              <strong>自己上传 PDF 给网页端 AI</strong>
+              <em>30k-60k token 原始上下文</em>
+            </div>
+            <div class="density-funnel">
+              <span>目录</span>
+              <span>页眉页脚</span>
+              <span>表格错位</span>
+              <span>重复文本</span>
+              <span>格式噪声</span>
+            </div>
+            <div class="density-meter" aria-label="约 8k-10k token 结构化有效输入">
+              <span style="--w: 12%;"></span>
+            </div>
+            <p>≈ 8k-10k token 结构化有效输入</p>
+          </div>
+
+          <div class="density-path is-ezer">
+            <div class="density-head">
+              <strong>Ezer 审计链路</strong>
+              <em>平均约 80k token 高密度结构化数据</em>
+            </div>
+            <div class="density-flow">
+              <span>解析</span>
+              <span>清洗</span>
+              <span>标准化</span>
+              <span>压缩</span>
+              <span>审计编排</span>
+            </div>
+            <div class="density-meter" aria-label="平均约 80k token 高密度结构化数据">
+              <span style="--w: 100%;"></span>
+            </div>
+            <p>更多有效信息用于财报判断、反证和复核</p>
+          </div>
+
+          <p class="density-note">
+            注：这里比较的是同等信息密度下的有效结构化输入，而不是模型厂商标称的原始上下文长度。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <StepsTimeline
-    title="3步完成专业财报分析"
+    title="核心优势"
     items={[
       {
-        title: "一键输入",
-        text: "输入公司名称或代码，系统快速发起分析，自动调取并解析冗长的财务报告。",
+        title: "白盒分析",
+        text: "我们深知分析依据不可追溯是财报分析中最大的风险。Ezer 不能接受没有根据的结论被模型幻觉产出，因此关键判断必须尽量绑定指标、口径、来源和复核理由。",
       },
       {
-        title: "智能对抗分析",
-        text: "自研编排中枢驱动多智能体并行处理，通过红蓝交叉验证，大幅提升疑点覆盖率与分析效率。",
+        title: "全链路使用最优质模型",
+        text: "金融分析这样的场景绝不能追求性价比。Ezer 不把任何关键环节交给廉价摘要链路，而是坚持用最优质的模型匹配对财报判断质量有要求的客户。",
       },
       {
-        title: "结构化结论输出",
-        text: "自动生成带有风险等级、证据依据和复核建议的报告，分析过程全程可视化、可追溯。",
+        title: "自研编排 + 小模型 + 专业数据库",
+        text: "自研编排负责拆解任务和组织复核，小模型承担链路中的专用任务，专业数据库补充财务、行业与外部数据，让财报审计覆盖更全面的证据面。",
       },
     ]}
   />
 
   <GalleryText
-    title="专为1.5亿 泛投资人群打造"
-    text="简洁的界面下，运行着高度复杂的编排中枢。我们降低了财报研究门槛，让普通投资者也能低成本体验专业级的投研分析能力。"
+    title="高价值模型 + 自研组件，不是单模型套壳"
+    text="Ezer 使用自研财报标准化组件和发布在 Hugging Face 的自研组件模型处理链路中的专用任务；复杂财务推理和审计复核交给高价值基础大模型完成。小模型不是噱头，它证明 Ezer 在财报任务上有自己的组件化工程。"
     cta={{
-      title: "查看演示",
+      title: "开始分析",
       url: "/check/?preview=true",
     }}
     images={[
@@ -113,26 +171,26 @@ import logo12 from "../assets/vercel_transparent.png";
       },
     ]}
     marqueeTexts={[
-      "红蓝对抗",
-      "结果可验证",
-      "多智能体协作",
-      "证据链完整",
+      "No cheap-model-first routing",
+      "Hugging Face 自研组件模型",
+      "Premium model chain",
+      "Audit-style review",
     ]}
   />
 
   <Statements
     items={[
       {
-        title: "模块化架构",
-        text: "自研编排中枢+子智能体集群，各分析模块独立迭代，精准适配复杂的财报审计场景。",
+        title: "核心结论",
+        text: "告诉你这份财报最值得关注的变化，而不是生成一段看起来正确的泛泛总结。",
       },
       {
-        title: "交叉验证流程",
-        text: "行业首创红蓝分工，通过逻辑反证与口径校验，大幅降低单路径推理误判与模型幻觉。",
+        title: "证据与限制",
+        text: "重要判断尽量对应财务指标、历史变化和来源；证据不足时直接标出，不假装确定。",
       },
       {
-        title: "可持续商业模式",
-        text: "多模型路由策略显著优化成本，保障 B 端交付毛利空间与 C 端普惠服务的持续性。",
+        title: "审计式复核",
+        text: "分析链路之后加入独立复核，专门挑战结论中的逻辑跳跃、过度推断和薄弱证据。",
       },
     ]}
   />
@@ -140,16 +198,16 @@ import logo12 from "../assets/vercel_transparent.png";
   <TextMarquee
     class="marquee"
     texts={[
-      "红蓝对抗",
-      "结果可验证",
-      "多智能体协作",
-      "证据链完整",
+      "Cheap AI summarizes",
+      "Ezer audits",
+      "No cheap-model-first routing",
+      "Evidence-linked output",
     ]}
   />
 
   <Plans
     title="服务计划"
-    subtitle="免费体验专业工具，增值服务解锁深度研究需求。"
+    subtitle="免费体验一部分分析能力；专业版面向需要更高额度和更完整输出的用户。"
     items={[
       {
         title: "免费版",
@@ -163,8 +221,8 @@ import logo12 from "../assets/vercel_transparent.png";
         },
         features: [
           { title: "每日3次财报分析" },
-          { title: "红蓝对抗分析" },
-          { title: "数据交叉验证" },
+          { title: "基础审计链路体验" },
+          { title: "核心结论与证据提示" },
           { title: "社区支持", disabled: true },
           { title: "导出专业 PDF 报告", disabled: true },
         ],
@@ -178,15 +236,15 @@ import logo12 from "../assets/vercel_transparent.png";
         },
         badge: "限时优惠",
         link: {
-          title: "立即购买",
+          title: "加入早鸟名单",
           url: "/premium/?from=home",
         },
         features: [
-          { title: "无限次财报分析" },
-          { title: "红蓝对抗分析" },
-          { title: "数据交叉验证" },
-          { title: "社区支持" },
-          { title: "导出专业 PDF 报告" },
+          { title: "更高额度财报分析" },
+          { title: "高价值模型链路" },
+          { title: "审计式复核与证据绑定" },
+          { title: "历史分析记录", disabled: true },
+          { title: "导出专业 PDF 报告", disabled: true },
         ],
       },
     ]}
@@ -198,29 +256,29 @@ import logo12 from "../assets/vercel_transparent.png";
     subtitle="快速了解 弈泽 的核心竞争力。"
     items={[
       {
-        question: "弈泽 和通用大模型（如 ChatGPT）分析财报有什么区别？",
+        question: "Ezer 是不是只是调用一个大模型？",
         answer:
-          "通用大模型缺乏稳定的研究流程且易产生“幻觉”。弈泽 强调编排、验证、证据链与复核建议，结果可追溯、可验证。",
+          "不是。Ezer 是多阶段财报审计链路，包含自研财报组件、Hugging Face 发布的自研组件模型、高价值基础大模型和审计式复核流程。",
       },
       {
-        question: "什么是“红蓝对抗”验证机制？",
+        question: "为什么 Ezer 要收费？",
         answer:
-          "这是行业首创逻辑：红队负责挖掘异常与疑点，蓝队负责反证与口径校验。交叉验证能显著降低误判，确保结论可靠性。",
+          "因为 Ezer 不以最低推理成本为目标。每份报告都会消耗更高成本的模型链路，并经过结构化分析和复核，而不是便宜模型的一次性摘要。",
       },
       {
-        question: "Ezer 的核心用户是谁？",
+        question: "Hugging Face 自研组件模型负责什么？",
         answer:
-          "我们主要服务两类核心客户：一是愿意主动研究财报的活跃个体投资者；二是行情资讯、投研工具、券商等 B 端平台客户。",
+          "它是 Ezer 财报链路中的专用组件，用于支持特定财报任务。复杂财务推理和审计复核仍由高价值基础大模型承担。",
       },
       {
-        question: "普通投资者真的能看懂分析结论吗？",
+        question: "Ezer 为什么不走廉价模型优先？",
         answer:
-          "是的。我们的目标就是降低阅读门槛，将长篇累牍的术语转化为带有风险等级和明确证据的结构化报告。",
+          "财报判断最怕低成本摘要把不确定内容说得很确定。Ezer 的策略是把模型成本花在关键判断、证据检查和不确定性暴露上。",
       },
       {
-        question: "项目目前的进度如何？",
+        question: "Ezer 会给买卖建议吗？",
         answer:
-          "目前已完成 MVP 开发及核心验证，财报上传、智能分析、报告生成等全流程已跑通，具备完整落地可行性。",
+          "不会。Ezer 是财报研究辅助工具，帮助用户理解风险、证据和不确定性，不替代专业投资顾问，也不提供个性化买卖建议。",
       },
     ]}
   />
@@ -286,5 +344,147 @@ import logo12 from "../assets/vercel_transparent.png";
   .marquee {
     padding: 2rem 0;
     z-index: 9;
+  }
+
+  .model-proof {
+    padding: 6rem 0 4rem;
+  }
+
+  .model-proof__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1fr);
+    gap: 3rem;
+    align-items: center;
+
+    @media (--mq-tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .model-proof__eyebrow {
+    margin: 0 0 1rem;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    color: var(--color-brand-1);
+  }
+
+  .model-proof__title {
+    --fs: clamp(2.4rem, 5vw, 4.8rem);
+    --lh: 1.05;
+    margin-bottom: 1.5rem;
+  }
+
+  .model-proof__text {
+    max-width: 36rem;
+    opacity: 0.78;
+  }
+
+  .input-density-card {
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1.4rem, 4vw, 3rem);
+    border: 1px solid rgba(var(--rgb-text), 0.12);
+    border-radius: 2rem;
+    background: rgba(var(--rgb-white), 0.72);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.1);
+
+    :global([data-theme="dark"]) & {
+      background: rgba(24, 24, 30, 0.72);
+    }
+  }
+
+  .density-path {
+    padding: 1.2rem;
+    border: 1px solid rgba(var(--rgb-text), 0.1);
+    border-radius: 1.25rem;
+    background: rgba(var(--rgb-text), 0.035);
+  }
+
+  .density-path.is-ezer {
+    border-color: rgba(var(--rgb-brand-1), 0.4);
+    background: linear-gradient(135deg, rgba(var(--rgb-brand-1), 0.12), rgba(var(--rgb-brand-2), 0.08));
+  }
+
+  .density-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+
+    @media (--mq-phone) {
+      display: block;
+    }
+  }
+
+  .density-head strong,
+  .density-head em {
+    display: block;
+  }
+
+  .density-head strong {
+    font-size: 1.05rem;
+  }
+
+  .density-head em,
+  .density-path p,
+  .density-note {
+    font-size: 0.85rem;
+    color: var(--color-text-alt);
+  }
+
+  .density-funnel,
+  .density-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 1rem 0;
+  }
+
+  .density-funnel span,
+  .density-flow span {
+    padding: 0.4rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    line-height: 1;
+  }
+
+  .density-funnel span {
+    background: rgba(var(--rgb-text), 0.08);
+    color: var(--color-text-alt);
+  }
+
+  .density-flow span {
+    background: rgba(var(--rgb-brand-1), 0.16);
+    color: var(--color-brand-1);
+    font-weight: 700;
+  }
+
+  .density-meter {
+    height: 0.85rem;
+    border-radius: 999px;
+    background: rgba(var(--rgb-text), 0.08);
+    overflow: hidden;
+  }
+
+  .density-meter span {
+    display: block;
+    width: var(--w);
+    height: 100%;
+    border-radius: inherit;
+    transition: width 900ms ease;
+  }
+
+  .is-diy .density-meter span {
+    background: rgba(var(--rgb-text), 0.32);
+  }
+
+  .is-ezer .density-meter span {
+    background: linear-gradient(90deg, var(--color-brand-1), var(--color-brand-2));
+  }
+
+  .density-path p,
+  .density-note {
+    margin: 0.75rem 0 0;
   }
 </style>

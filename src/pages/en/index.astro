@@ -44,13 +44,13 @@ import logo12 from "../../assets/vercel_transparent.png";
 ---
 
 <Layout 
-  title="Adversarial Audit-Grade Financial Analysis System"
-  description="Ezer Audit: The leading adversarial audit-grade financial analysis system. We provide investors with professional financial risk discovery and cross-validation through multi-agent collaboration."
-  keywords="financial analysis, stock audit, investment risk, Ezer Audit, AI financial report, red-blue adversarial, fintech"
+  title="Cheap AI summarizes. Ezer audits."
+  description="Ezer does not take cheap-model shortcuts. We combine proprietary financial components with high-value foundation models to run a multi-stage audit chain for financial reports."
+  keywords="financial analysis, financial audit, premium models, proprietary financial model, Ezer Audit, evidence review, investment research"
 >
   <HeroHome
-    title="Adversarial Audit-Grade Fin.Analysis"
-    subtitle="Ezer systematizes professional research workflows, streamlining 'Parsing - Policing - Verification - Review - Generation' to help you pinpoint real risks instantly."
+    title="Cheap AI summarizes. Ezer audits."
+    subtitle="Most AI finance tools optimize for cheap summaries. Ezer does not. We use proprietary financial components and high-value foundation models to run a more expensive, stricter financial-report audit chain."
     cta={{
       title: "Get Started",
       url: "/en/check/?preview=true",
@@ -58,37 +58,95 @@ import logo12 from "../../assets/vercel_transparent.png";
   />
 
   <Introducing
-    title="Not just a chatbot, but a professional analysis system for everyone"
-    text="Addressing high barriers to entry and unreliable AI models, Ezer pioneers the Red-Blue adversarial logic. The Red Team uncovers risks while the Blue Team verifies them, solving the 'black box' unreliability of general-purpose models."
+    title="Ezer is an audit-grade financial-report analysis system"
+    text="Ezer is built for financial-report research and risk discovery. It connects data normalization, professional metric decomposition, industry context, external data, and audit-style review into one workflow. It does not rewrite filings into summaries; it turns them into traceable, reviewable, and further-investigable analysis."
     cta={{
-      title: "Start Analysis",
+      title: "View Example Report",
       url: "/en/search/",
     }}
   />
 
+  <section class="model-proof">
+    <div class="u-container">
+      <div class="model-proof__grid">
+        <div class="model-proof__copy" data-sy-reveal="slideUp">
+          <p class="model-proof__eyebrow">EFFECTIVE INPUT DENSITY</p>
+          <h2 class="u-heading model-proof__title">Same AI category, different effective input density</h2>
+          <p class="u-text model-proof__text">
+            When users feed a PDF directly into a web AI chat, much of the context is spent on tables, headers, footers, duplicated text, layout noise, and parsing errors. Even when the web interface advertises a 30k-60k token context window, the equivalent high-density structured financial input can be closer to 8k-10k tokens.
+          </p>
+          <p class="u-text model-proof__text">
+            Ezer first parses, cleans, normalizes, and compresses the filing, then sends an average of about 80k tokens of high-density structured data into the model chain. A more professional orchestration flow, deeper audit aligned with real investment blind spots, and far more effective input are why users choose Ezer.
+          </p>
+        </div>
+        <div class="input-density-card" data-sy-reveal="blurIn">
+          <div class="density-path is-diy">
+            <div class="density-head">
+              <strong>DIY PDF to web AI</strong>
+              <em>30k-60k token raw context</em>
+            </div>
+            <div class="density-funnel">
+              <span>Tables</span>
+              <span>Headers</span>
+              <span>Layout noise</span>
+              <span>Duplicates</span>
+              <span>Parsing errors</span>
+            </div>
+            <div class="density-meter" aria-label="About 8k-10k tokens of structured effective input">
+              <span style="--w: 12%;"></span>
+            </div>
+            <p>~8k-10k tokens of structured effective input</p>
+          </div>
+
+          <div class="density-path is-ezer">
+            <div class="density-head">
+              <strong>Ezer audit chain</strong>
+              <em>~80k tokens of high-density structured data on average</em>
+            </div>
+            <div class="density-flow">
+              <span>Parse</span>
+              <span>Clean</span>
+              <span>Normalize</span>
+              <span>Compress</span>
+              <span>Audit orchestration</span>
+            </div>
+            <div class="density-meter" aria-label="About 80k tokens of high-density structured data on average">
+              <span style="--w: 100%;"></span>
+            </div>
+            <p>More effective information for judgment, counter-checking, and review</p>
+          </div>
+
+          <p class="density-note">
+            Note: This compares effective structured input at similar information density, not the raw context window advertised by model interfaces.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <StepsTimeline
-    title="3 Steps to Professional Financial Analysis"
+    title="Core Advantages"
     items={[
       {
-        title: "One-Click Input",
-        text: "Enter a company name or code. The system automatically fetches and parses lengthy, complex financial reports in seconds.",
+        title: "White-box analysis",
+        text: "We treat untraceable reasoning as one of the biggest risks in financial analysis. Ezer cannot accept unsupported conclusions produced by model hallucination, so key judgments are tied to metrics, definitions, sources, and review rationale where possible.",
       },
       {
-        title: "Adversarial AI Analysis",
-        text: "Our proprietary orchestration hub drives multi-agents for red-blue cross-verification, maximizing risk coverage and analysis accuracy.",
+        title: "Best models across the full chain",
+        text: "Financial analysis is not a place to optimize for cost-performance tradeoffs. Ezer does not hand any critical step to a cheap-summary chain; we use the best available models to match customers who care about judgment quality.",
       },
       {
-        title: "Structured Report Output",
-        text: "Get automated reports with risk levels, evidence chains, and review suggestions—all fully visualized and traceable.",
+        title: "Proprietary orchestration + small models + professional databases",
+        text: "Proprietary orchestration decomposes tasks and organizes review, smaller models handle specialized pipeline tasks, and professional databases add financial, industry, and external data for broader audit coverage.",
       },
     ]}
   />
 
   <GalleryText
-    title="Built for 150 Million Modern Investors"
-    text="Behind a clean interface lies a highly complex orchestration hub. We lower the barrier to financial research, providing professional-grade investment analysis for everyone."
+    title="Premium models + proprietary components, not a single-model wrapper"
+    text="Ezer uses proprietary financial normalization components and a Hugging Face-published component model for specialized tasks inside the pipeline. Complex financial reasoning and audit review are handled by high-value foundation models. The smaller model is not the main act; it proves Ezer has its own task-specific engineering."
     cta={{
-      title: "View Demo",
+      title: "Start Analysis",
       url: "/en/check/?preview=true",
     }}
     images={[
@@ -112,26 +170,26 @@ import logo12 from "../../assets/vercel_transparent.png";
       },
     ]}
     marqueeTexts={[
-      "Red-Blue Adversarial",
-      "Verifiable Results",
-      "Multi-Agent Collaboration",
-      "Complete Evidence Chain",
+      "No cheap-model-first routing",
+      "Hugging Face component model",
+      "Premium model chain",
+      "Audit-style review",
     ]}
   />
 
   <Statements
     items={[
       {
-        title: "Modular Architecture",
-        text: "Proprietary orchestration + multi-agent clusters. Independent modules iterate precisely for complex auditing scenarios.",
+        title: "Core Conclusions",
+        text: "You get the most important changes in the report, not a generic paragraph that merely sounds correct.",
       },
       {
-        title: "Cross-Verification Process",
-        text: "Industry-first Red-Blue split. Logical counter-proofing significantly reduces misjudgment and AI hallucinations.",
+        title: "Evidence and Limits",
+        text: "Important judgments are tied to metrics, history, and sources where possible. When evidence is thin, Ezer says so.",
       },
       {
-        title: "Sustainable Business Model",
-        text: "Multi-model routing optimizes costs, ensuring B2B profitability and accessible B2C premium services.",
+        title: "Audit-Style Review",
+        text: "After analysis, a separate review step challenges logic jumps, overreach, and weak evidence before delivery.",
       },
     ]}
   />
@@ -139,16 +197,16 @@ import logo12 from "../../assets/vercel_transparent.png";
   <TextMarquee
     class="marquee"
     texts={[
-      "Red-Blue Adversarial",
-      "Verifiable Results",
-      "Multi-Agent Collaboration",
-      "Complete Evidence Chain",
+      "Cheap AI summarizes",
+      "Ezer audits",
+      "No cheap-model-first routing",
+      "Evidence-linked output",
     ]}
   />
 
   <Plans
     title="Plans & Pricing"
-    subtitle="Start for free, upgrade for in-depth research. No hidden fees, no long-term commitments."
+    subtitle="Start with a limited free experience. Upgrade when you need higher quota and fuller outputs."
     items={[
       {
         title: "Free",
@@ -162,8 +220,8 @@ import logo12 from "../../assets/vercel_transparent.png";
         },
         features: [
           { title: "3 Financial Analyses Daily" },
-          { title: "Red-Blue Adversarial Analysis" },
-          { title: "Data Cross-Verification" },
+          { title: "Basic audit-chain experience" },
+          { title: "Core conclusions and evidence notes" },
           { title: "Community Support", disabled: true },
           { title: "Export Professional PDF Reports", disabled: true },
         ],
@@ -177,15 +235,15 @@ import logo12 from "../../assets/vercel_transparent.png";
         },
         badge: "Limited",
         link: {
-          title: "Upgrade Now",
+          title: "Join Early Access",
           url: "/en/premium/?from=home",
         },
         features: [
-          { title: "Unlimited Financial Analyses" },
-          { title: "Red-Blue Adversarial Analysis" },
-          { title: "Data Cross-Verification" },
-          { title: "Community Support" },
-          { title: "Export Professional PDF Reports" },
+          { title: "Higher report-analysis quota" },
+          { title: "High-value model chain" },
+          { title: "Audit-style review and evidence links" },
+          { title: "Analysis history", disabled: true },
+          { title: "Export Professional PDF Reports", disabled: true },
         ],
       },
     ]}
@@ -197,29 +255,29 @@ import logo12 from "../../assets/vercel_transparent.png";
     subtitle="Quick answers to common questions about Ezer."
     items={[
       {
-        question: "How is Ezer different from generic AI like ChatGPT?",
+        question: "Is Ezer just calling one large model?",
         answer:
-          "Generic models lack stable research processes and are prone to hallucinations. Ezer emphasizes orchestration, verification, and evidence chains, making results traceable and reliable.",
+          "No. Ezer is a multi-stage financial-report audit chain that combines proprietary financial components, a Hugging Face-published component model, high-value foundation models, and audit-style review.",
       },
       {
-        question: "What is the Red-Blue Adversarial mechanism?",
+        question: "Why does Ezer charge?",
         answer:
-          "It's an industry-first logic: the Red Team uncovers anomalies, while the Blue Team handles counter-verification. This cross-check significantly reduces misjudgment.",
+          "Because Ezer does not optimize for the cheapest inference. Each report consumes a higher-cost model chain and a structured analysis/review process instead of a one-shot cheap summary.",
       },
       {
-        question: "Who are Ezer's core users?",
+        question: "What does the Hugging Face component model do?",
         answer:
-          "We serve two groups: individual investors who want in-depth financial research, and B2B clients like brokerages and investment platforms.",
+          "It is a proprietary component inside the broader financial-report pipeline for specialized tasks. Complex reasoning and audit review still run on high-value foundation models.",
       },
       {
-        question: "Can beginners understand the analysis results?",
+        question: "Why not use cheap-model-first routing?",
         answer:
-          "Yes. Our goal is to lower the barrier by converting complex jargon into structured reports with clear risk levels and clear evidence.",
+          "Financial analysis is risky when low-cost summaries make uncertain claims sound certain. Ezer spends model cost on core judgments, evidence checks, and uncertainty exposure.",
       },
       {
-        question: "What is the current project status?",
+        question: "Does Ezer give buy or sell advice?",
         answer:
-          "We have completed MVP development. The entire workflow—from report upload to intelligent analysis and generation—is fully operational.",
+          "No. Ezer is a financial-report research assistant. It helps users understand risks, evidence, and uncertainty, but it does not replace professional investment advice or provide personalized trading recommendations.",
       },
     ]}
   />
@@ -285,5 +343,147 @@ import logo12 from "../../assets/vercel_transparent.png";
   .marquee {
     padding: 2rem 0;
     z-index: 9;
+  }
+
+  .model-proof {
+    padding: 6rem 0 4rem;
+  }
+
+  .model-proof__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1fr);
+    gap: 3rem;
+    align-items: center;
+
+    @media (--mq-tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .model-proof__eyebrow {
+    margin: 0 0 1rem;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    color: var(--color-brand-1);
+  }
+
+  .model-proof__title {
+    --fs: clamp(2.4rem, 5vw, 4.8rem);
+    --lh: 1.05;
+    margin-bottom: 1.5rem;
+  }
+
+  .model-proof__text {
+    max-width: 36rem;
+    opacity: 0.78;
+  }
+
+  .input-density-card {
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1.4rem, 4vw, 3rem);
+    border: 1px solid rgba(var(--rgb-text), 0.12);
+    border-radius: 2rem;
+    background: rgba(var(--rgb-white), 0.72);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.1);
+
+    :global([data-theme="dark"]) & {
+      background: rgba(24, 24, 30, 0.72);
+    }
+  }
+
+  .density-path {
+    padding: 1.2rem;
+    border: 1px solid rgba(var(--rgb-text), 0.1);
+    border-radius: 1.25rem;
+    background: rgba(var(--rgb-text), 0.035);
+  }
+
+  .density-path.is-ezer {
+    border-color: rgba(var(--rgb-brand-1), 0.4);
+    background: linear-gradient(135deg, rgba(var(--rgb-brand-1), 0.12), rgba(var(--rgb-brand-2), 0.08));
+  }
+
+  .density-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+
+    @media (--mq-phone) {
+      display: block;
+    }
+  }
+
+  .density-head strong,
+  .density-head em {
+    display: block;
+  }
+
+  .density-head strong {
+    font-size: 1.05rem;
+  }
+
+  .density-head em,
+  .density-path p,
+  .density-note {
+    font-size: 0.85rem;
+    color: var(--color-text-alt);
+  }
+
+  .density-funnel,
+  .density-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 1rem 0;
+  }
+
+  .density-funnel span,
+  .density-flow span {
+    padding: 0.4rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    line-height: 1;
+  }
+
+  .density-funnel span {
+    background: rgba(var(--rgb-text), 0.08);
+    color: var(--color-text-alt);
+  }
+
+  .density-flow span {
+    background: rgba(var(--rgb-brand-1), 0.16);
+    color: var(--color-brand-1);
+    font-weight: 700;
+  }
+
+  .density-meter {
+    height: 0.85rem;
+    border-radius: 999px;
+    background: rgba(var(--rgb-text), 0.08);
+    overflow: hidden;
+  }
+
+  .density-meter span {
+    display: block;
+    width: var(--w);
+    height: 100%;
+    border-radius: inherit;
+    transition: width 900ms ease;
+  }
+
+  .is-diy .density-meter span {
+    background: rgba(var(--rgb-text), 0.32);
+  }
+
+  .is-ezer .density-meter span {
+    background: linear-gradient(90deg, var(--color-brand-1), var(--color-brand-2));
+  }
+
+  .density-path p,
+  .density-note {
+    margin: 0.75rem 0 0;
   }
 </style>
