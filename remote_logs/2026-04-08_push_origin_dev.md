@@ -31,4 +31,19 @@ Push locally created commits to `origin/dev`:
 
 ## Post-change Result
 
-- Pending.
+- Completed.
+- Push target confirmed: `origin/dev`
+- Remote sync state after verification: local `0 ahead / 0 behind` relative to `origin/dev`
+- Commits now on remote:
+  - `ef60905` `docs: add effective input density copy`
+  - `9a84099` `feat: add effective input density demo`
+  - `b6e2d97` `chore: add remote push control record`
+- Validation evidence:
+  - `git rev-list --left-right --count @{upstream}...HEAD` returned `0 0`
+  - `git log --oneline -3` shows the expected commit sequence locally after sync
+- Remaining local uncommitted changes not part of this remote submission:
+  - `src/i18n/ui.ts`
+  - `src/pages/about.astro`
+  - `src/pages/en/about.astro`
+  - `src/pages/premium.astro`
+  - `src/pages/en/premium.astro`
