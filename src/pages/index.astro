@@ -24,7 +24,6 @@ import ImageMarquee from "../components/ImageMarquee.astro";
 import Faqs from "../components/Faqs.astro";
 import StepsTimeline from "../components/StepsTimeline.astro";
 import Plans from "../components/Plans.astro";
-import Statements from "../components/Statements.astro";
 import Introducing from "../components/Introducing.astro";
 import GL from "../components/GL.astro";
 import GLPlaces from "../components/GlPlaces.astro";
@@ -50,10 +49,10 @@ import logo12 from "../assets/vercel_transparent.png";
   keywords="财报分析, 财务审计, 股票投资, 高价值模型, 自研财报模型, Ezer Audit, 证据复核"
 >
   <HeroHome
-    title="Cheap AI summarizes. Ezer audits."
+    title="廉价AI 做总结， Ezer做审计"
     subtitle="廉价 AI 做总结，Ezer 做审计。我们不追求最低推理成本，而是使用自研财报组件和高价值基础大模型，完成更高成本、更严格的财报分析链路。"
     cta={{
-      title: "开始分析",
+      title: "立即体验",
       url: "/check/?preview=true",
     }}
   />
@@ -62,7 +61,7 @@ import logo12 from "../assets/vercel_transparent.png";
     title="Ezer 是审计级财报分析系统"
     text="Ezer 面向财报研究与风险识别场景，将数据标准化、专业指标拆解、行业信息补充和审计式复核串成完整链路。它不是把财报改写成摘要，而是把财报转化为可追溯、可复核、可继续深挖的分析结果。"
     cta={{
-      title: "查看示例报告",
+      title: "开始分析",
       url: "/search/",
     }}
   />
@@ -144,10 +143,10 @@ import logo12 from "../assets/vercel_transparent.png";
   />
 
   <GalleryText
-    title="高价值模型 + 自研组件，不是单模型套壳"
+    title="高价值模型 + 自研组件， 不是单模型套壳"
     text="Ezer 使用自研财报标准化组件和发布在 Hugging Face 的自研组件模型处理链路中的专用任务；复杂财务推理和审计复核交给高价值基础大模型完成。小模型不是噱头，它证明 Ezer 在财报任务上有自己的组件化工程。"
     cta={{
-      title: "开始分析",
+      title: "查看演示",
       url: "/check/?preview=true",
     }}
     images={[
@@ -178,22 +177,6 @@ import logo12 from "../assets/vercel_transparent.png";
     ]}
   />
 
-  <Statements
-    items={[
-      {
-        title: "核心结论",
-        text: "告诉你这份财报最值得关注的变化，而不是生成一段看起来正确的泛泛总结。",
-      },
-      {
-        title: "证据与限制",
-        text: "重要判断尽量对应财务指标、历史变化和来源；证据不足时直接标出，不假装确定。",
-      },
-      {
-        title: "审计式复核",
-        text: "分析链路之后加入独立复核，专门挑战结论中的逻辑跳跃、过度推断和薄弱证据。",
-      },
-    ]}
-  />
 
   <TextMarquee
     class="marquee"
@@ -236,7 +219,7 @@ import logo12 from "../assets/vercel_transparent.png";
         },
         badge: "限时优惠",
         link: {
-          title: "加入早鸟名单",
+          title: "立即购买",
           url: "/premium/?from=home",
         },
         features: [
@@ -384,13 +367,16 @@ import logo12 from "../assets/vercel_transparent.png";
     display: grid;
     gap: 1rem;
     padding: clamp(1.4rem, 4vw, 3rem);
-    border: 1px solid rgba(var(--rgb-text), 0.12);
+    border: 1px solid rgba(var(--rgb-text), 0.1);
     border-radius: 2rem;
-    background: rgba(var(--rgb-white), 0.72);
-    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 9;
+    background: rgba(var(--rgb-white), 0.3);
+    backdrop-filter: blur(2px);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.05);
 
     :global([data-theme="dark"]) & {
-      background: rgba(24, 24, 30, 0.72);
+      background: rgba(24, 24, 30, 0.3);
     }
   }
 

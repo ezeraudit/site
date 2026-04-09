@@ -522,13 +522,6 @@ const periods = [
     const year = selectedYear;
     const period = selectedPeriod;
 
-    // 2025 Annual Report validation
-    if (year === '2025' && period === 'full') {
-      const msg = window.location.pathname.startsWith('/en') ? 'Please select a correct reporting period.' : '请选择正确的财报时段';
-      alert(msg);
-      return;
-    }
-
     const checkUrl = `/check/?code=${selectedStock.symbol}&year=${year}&period=${period}`;
     
     // Check session
