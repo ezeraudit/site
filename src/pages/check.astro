@@ -48,15 +48,63 @@ if (preview !== 'true') {
 
       <!-- Loading State -->
       <div class="loading-container" id="loading-container">
-        <div class="spinner-wrapper">
-          <div class="spinner"></div>
-          <div class="spinner-ring"></div>
+        <div class="financial-quantum-loader">
+          <!-- Background Grid & Glow -->
+          <div class="loader-backdrop"></div>
+          <div class="scanning-beam"></div>
+          
+          <div class="loader-main">
+            <!-- Central Dynamic Icon (Rotates through states) -->
+            <div class="pivot-icon">
+              <div class="icon-state s-shield active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="icon-state s-chart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+              </div>
+              <div class="icon-state s-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+            </div>
+            
+            <!-- Candlestick Animation -->
+            <div class="finance-viz">
+              <div class="candle c1"></div>
+              <div class="candle c2"></div>
+              <div class="candle c3"></div>
+              <div class="candle c4"></div>
+              <div class="candle c5"></div>
+            </div>
+
+            <!-- Ticker Band -->
+            <div class="ticker-tape">
+              <div class="ticker-track">
+                <span>REVENUE_VAL: OK</span><span>NET_PROFIT: STABLE</span><span>DEBT_RATIO: 42%</span><span>AUDIT_PROC_INIT</span><span>CROSS_CHECKED</span><span>CASH_FLOW_PULSE</span>
+              </div>
+            </div>
+
+            <!-- Data Flux Particles -->
+            <div class="data-flux">
+              <span class="flux-item">RISK:LOW</span>
+              <span class="flux-item">AUDIT:PASS</span>
+              <span class="flux-item">DATA:99.9%</span>
+              <span class="flux-item">ROI:12%</span>
+            </div>
+          </div>
+          
+          <!-- Outer Orbits -->
+          <div class="orbit-path op-1"></div>
+          <div class="orbit-path op-2"></div>
         </div>
-        <p class="loading-text" id="loading-text">{t("check.loading")}</p>
-        <div class="progress-bar-wrapper">
-          <div class="progress-bar" id="progress-bar"></div>
+
+        <div class="loading-info">
+          <p class="loading-text" id="loading-text">{t("check.loading")}</p>
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar" id="progress-bar"></div>
+            <div class="progress-glow"></div>
+          </div>
+          <p class="progress-label" id="progress-label">0%</p>
         </div>
-        <p class="progress-label" id="progress-label">0%</p>
       </div>
 
       <!-- Error State -->
@@ -88,25 +136,25 @@ if (preview !== 'true') {
                 <div class="section-label">数据归一化 (A)</div>
                 <div class="charts-grid" id="charts-a">
                   <div class="chart-item">
-                    <div class="chart-label">营业收入 (Revenue)</div>
+                    <div class="chart-label">营业收入</div>
                     <div class="chart-canvas-wrapper">
                       <canvas id="chart-revenue"></canvas>
                     </div>
                   </div>
                   <div class="chart-item">
-                    <div class="chart-label">净利润 (Net Profit)</div>
+                    <div class="chart-label">净利润</div>
                     <div class="chart-canvas-wrapper">
                       <canvas id="chart-profit"></canvas>
                     </div>
                   </div>
                   <div class="chart-item">
-                    <div class="chart-label">毛利率 (Gross Margin)</div>
+                    <div class="chart-label">毛利率</div>
                     <div class="chart-canvas-wrapper">
                       <canvas id="chart-margin"></canvas>
                     </div>
                   </div>
                   <div class="chart-item">
-                    <div class="chart-label">资产负债率 (Debt Ratio)</div>
+                    <div class="chart-label">资产负债率</div>
                     <div class="chart-canvas-wrapper">
                       <canvas id="chart-debt"></canvas>
                     </div>
@@ -175,65 +223,283 @@ if (preview !== 'true') {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.2rem;
-    padding: 4rem 1rem;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 0 1rem 4rem;
+    min-height: 55vh;
   }
 
-  .spinner-wrapper {
+  .financial-quantum-loader {
     position: relative;
-    width: 64px;
-    height: 64px;
+    width: 280px;
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 24px;
+    background: rgba(var(--rgb-brand-1), 0.02);
+    border: 1px solid rgba(var(--rgb-brand-1), 0.1);
+    box-shadow: inset 0 0 40px rgba(var(--rgb-brand-1), 0.05);
   }
 
-  .spinner {
-    width: 64px;
-    height: 64px;
-    border: 3px solid rgba(var(--rgb-brand-1), 0.15);
-    border-top-color: var(--color-brand-1);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  .spinner-ring {
+  .loader-backdrop {
     position: absolute;
-    inset: 6px;
-    border: 2px solid rgba(var(--rgb-brand-1), 0.08);
-    border-bottom-color: rgba(var(--rgb-brand-1), 0.5);
-    border-radius: 50%;
-    animation: spin 1.5s linear infinite reverse;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(var(--rgb-brand-1), 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--rgb-brand-1), 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.3;
   }
 
-  @keyframes spin {
+  .scanning-beam {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to bottom, transparent, rgba(var(--rgb-brand-1), 0.2), transparent);
+    animation: beam-scan 3s ease-in-out infinite;
+    z-index: 1;
+  }
+
+  @keyframes beam-scan {
+    0% { top: -40%; }
+    50% { top: 100%; }
+    100% { top: -40%; }
+  }
+
+  .loader-main {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .pivot-icon {
+    width: 60px;
+    height: 60px;
+    color: var(--color-brand-1);
+    filter: drop-shadow(0 0 15px rgba(var(--rgb-brand-1), 0.5));
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .icon-state {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: scale(0.8) rotate(-10deg);
+    transition: all 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-state.active {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .icon-state svg {
+    width: 100%;
+    height: 100%;
+    stroke: var(--color-brand-1);
+  }
+
+  /* Auto-rotation of icons handled by animation or script? 
+     Let's use a CSS animation for simplicity if possible, or just a CSS stagger */
+  .s-shield { animation: state-cycle 9s infinite 0s; }
+  .s-chart { animation: state-cycle 9s infinite 3s; }
+  .s-search { animation: state-cycle 9s infinite 6s; }
+
+  @keyframes state-cycle {
+    0%, 28% { opacity: 1; transform: scale(1) rotate(0deg); }
+    33.33%, 95% { opacity: 0; transform: scale(0.8) rotate(10deg); }
+    100% { opacity: 0; }
+  }
+
+  /* Candlesticks */
+  .finance-viz {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 60px;
+    margin-bottom: 20px;
+  }
+
+  .candle {
+    width: 10px;
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .candle::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 2px;
+    height: 120%;
+    bottom: -10%;
+    transform: translateX(-50%);
+    background: inherit;
+    opacity: 0.4;
+  }
+
+  .c1 { height: 30px; background: #10b981; animation: fluctu-green 2s infinite 0s; }
+  .c2 { height: 45px; background: #ef4444; animation: fluctu-red 2.5s infinite 0.3s; }
+  .c3 { height: 25px; background: #10b981; animation: fluctu-green 1.8s infinite 0.6s; }
+  .c4 { height: 50px; background: #10b981; animation: fluctu-green 2.2s infinite 0.9s; }
+  .c5 { height: 35px; background: #ef4444; animation: fluctu-red 2.1s infinite 1.2s; }
+
+  @keyframes fluctu-green {
+    0%, 100% { height: 20px; }
+    50% { height: 40px; }
+  }
+  @keyframes fluctu-red {
+    0%, 100% { height: 50px; }
+    50% { height: 25px; }
+  }
+
+  /* Ticker Tape */
+  .ticker-tape {
+    width: 120%;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 0;
+    transform: rotate(-5deg);
+    border-top: 1px solid rgba(var(--rgb-brand-1), 0.2);
+    border-bottom: 1px solid rgba(var(--rgb-brand-1), 0.2);
+    overflow: hidden;
+  }
+
+  .ticker-track {
+    display: flex;
+    white-space: nowrap;
+    gap: 30px;
+    animation: ticker-slide 15s linear infinite;
+  }
+
+  .ticker-track span {
+    font-size: 0.7rem;
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
+    color: var(--color-text-alt);
+  }
+
+  @keyframes ticker-slide {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* Data Flux */
+  .data-flux {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .flux-item {
+    position: absolute;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--color-brand-1);
+    background: rgba(var(--rgb-brand-1), 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    font-family: var(--font-mono, monospace);
+  }
+
+  .flux-item:nth-child(1) { top: 15%; left: 10%; animation: float-data 4s infinite 0s; }
+  .flux-item:nth-child(2) { top: 20%; right: 10%; animation: float-data 4s infinite 1s; }
+  .flux-item:nth-child(3) { bottom: 25%; left: 15%; animation: float-data 4s infinite 2s; }
+  .flux-item:nth-child(4) { bottom: 15%; right: 15%; animation: float-data 4s infinite 3s; }
+
+  @keyframes float-data {
+    0% { transform: translateY(10px); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { transform: translateY(-30px); opacity: 0; }
+  }
+
+  /* Orbit Paths */
+  .orbit-path {
+    position: absolute;
+    border: 1px dashed rgba(var(--rgb-brand-1), 0.15);
+    border-radius: 50%;
+  }
+
+  .op-1 { width: 140%; height: 140%; animation: rotate 20s linear infinite; }
+  .op-2 { width: 180%; height: 180%; animation: rotate 30s linear infinite reverse; }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
 
+  .loading-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 440px;
+  }
+
   .loading-text {
-    font-size: 1rem;
-    color: var(--color-text-alt);
-    font-weight: 500;
-    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--color-text);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-align: center;
   }
 
   .progress-bar-wrapper {
-    width: min(400px, 80vw);
-    height: 6px;
-    background: rgba(var(--rgb-brand-1), 0.12);
+    position: relative;
+    width: 100%;
+    height: 8px;
+    background: rgba(var(--rgb-brand-1), 0.08);
     border-radius: 999px;
     overflow: hidden;
+    margin-top: 0.5rem;
   }
 
   .progress-bar {
     height: 100%;
     width: 0%;
-    background: var(--color-brand-1);
+    background: linear-gradient(90deg, var(--color-brand-1), #9333ea);
     border-radius: 999px;
-    transition: width 0.6s var(--ease-out-expo);
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    z-index: 2;
+  }
+
+  .progress-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shine 2s infinite;
+  }
+
+  @keyframes shine {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
   }
 
   .progress-label {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--color-text-alt);
-    font-style: italic;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
   }
 
   /* ── Error ── */
@@ -1571,6 +1837,11 @@ if (preview !== 'true') {
     isSSE = false,
     onFirstChunk?: () => void
   ) {
+    if (preview === 'true') {
+      setProgress(50, lang === 'zh-CN' ? '正在初始化预览数据...' : 'Preparing preview data...');
+      await new Promise(r => setTimeout(r, 3000));
+    }
+
     loadingEl.classList.add('hidden');
     resultsEl.classList.remove('hidden');
 
