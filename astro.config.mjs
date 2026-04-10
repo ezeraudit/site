@@ -29,6 +29,12 @@ export default defineConfig({
     },
     {
       provider: fontProviders.google(),
+      name: "Noto Serif SC",
+      cssVariable: "--font-noto-serif-sc",
+      weights: ["400", "700"],
+    },
+    {
+      provider: fontProviders.google(),
       name: "Inter",
       cssVariable: "--font-inter",
       weights: ["100 900"],
