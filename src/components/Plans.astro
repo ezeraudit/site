@@ -6,9 +6,11 @@ interface Item {
   title: string;
   price: {
     amount: string;
+    oldAmount?: string;
     duration: string;
   };
   link: Link;
+  badge?: string;
   features: {
     title: string;
     disabled?: boolean;
@@ -40,6 +42,11 @@ const { title, subtitle, items } = Astro.props;
               </h3>
               <p class="u-heading price">
                 <span data-sy-reveal="blurIn">{item.price.amount}</span>
+                {item.price.oldAmount && (
+                  <span class="old-price" data-sy-reveal="blurIn">
+                    {item.price.oldAmount}
+                  </span>
+                )}
                 <span class="duration u-text">
                   /{item.price.duration}
                 </span>
@@ -59,6 +66,7 @@ const { title, subtitle, items } = Astro.props;
                 color={i === 0 ? "primary-alt" : "primary"}
               />
             </div>
+            {item.badge && <div class="badge">{item.badge}</div>}
           </div>
         ))
       }
@@ -164,11 +172,44 @@ const { title, subtitle, items } = Astro.props;
 
   .price {
     display: flex;
-    align-items: center;
-    gap: 0.1em;
+    align-items: baseline;
+    gap: 0.25em;
     margin: 0;
-    --fs: 3rem;
+    --fs: 2.8rem;
     --fw: 400;
+    white-space: nowrap;
+  }
+
+  .old-price {
+    font-size: 0.4em !important;
+    text-decoration: line-through;
+    color: var(--color-text-alt);
+    opacity: 0.4;
+    font-weight: 300;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .badge {
+    position: absolute;
+    top: 20px;
+    right: -35px;
+    width: 150px;
+    height: 24px;
+    background: #ff3b30;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transform: rotate(45deg);
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(255, 59, 48, 0.4);
+    z-index: 10;
+    pointer-events: none;
+    letter-spacing: 0.05rem;
   }
 
   .duration {

@@ -16,7 +16,7 @@ const { title, subtitle, cta } = Astro.props;
   <div class="u-container container">
     <div class="inner">
       <div class="content">
-        <h1 class="u-heading title" data-sy-reveal="words">{title}</h1>
+        <h1 class="u-heading title" data-sy-reveal="words" set:html={title} />
         {
           subtitle ? (
             <p class="u-text subtitle" data-sy-reveal="lines">
@@ -24,7 +24,7 @@ const { title, subtitle, cta } = Astro.props;
             </p>
           ) : null
         }
-        {cta ? <Button {...cta} arrow class="cta" /> : null}
+        {cta ? <Button {...cta} arrow size="lg" class="cta" /> : null}
       </div>
       <div data-gl-place></div>
     </div>
@@ -95,7 +95,7 @@ const { title, subtitle, cta } = Astro.props;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding: 9rem 0 10rem;
+    padding: 7rem 0 8.5rem;
     position: relative;
     z-index: 1;
     min-height: 100vh;
@@ -107,12 +107,14 @@ const { title, subtitle, cta } = Astro.props;
   }
 
   .title {
-    --fs: 4.5rem;
-    --lh: 1.5;
-    max-width: 6em;
+    --fs: 4rem;
+    --lh: 1.1;
+    max-width: 12em;
+    font-family: 'Roboto', 'Noto Sans SC', sans-serif;
+    font-weight: 900;
 
     @media (--mq-phone) {
-      --fs: 3.5rem;
+      --fs: 3rem;
     }
   }
 
@@ -120,7 +122,7 @@ const { title, subtitle, cta } = Astro.props;
     --fs: var(--font-size-lg);
     --lh: 1.5;
     max-width: 30em;
-    margin-top: 1.5rem;
+    margin-top: 2rem !important;
   }
 
   .cta {
@@ -130,7 +132,7 @@ const { title, subtitle, cta } = Astro.props;
   [data-gl-place] {
     --d: 1;
     --s: 24rem;
-    margin-top: -2rem;
+    margin-top: 4rem;
 
     @media (--mq-desktop-lg) {
       --s: 22rem;
@@ -144,7 +146,7 @@ const { title, subtitle, cta } = Astro.props;
       margin: 0 auto;
       right: 0;
       width: 20rem;
-      transform: translateY(-60%);
+      transform: translateY(-45%);
     }
 
     @media (--mq-tablet-sm) {

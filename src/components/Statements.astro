@@ -1,5 +1,4 @@
 ---
-import RectReveal from "../components/RectReveal.astro";
 
 interface Props {
   items: { title: string; text: string }[];
@@ -9,7 +8,6 @@ const { items } = Astro.props;
 ---
 
 <div class="sy-statements">
-  <RectReveal ignoreLast>
     {
       items.map(({ title, text }, i) => (
         <div class="box">
@@ -29,7 +27,6 @@ const { items } = Astro.props;
         </div>
       ))
     }
-  </RectReveal>
   <div data-gl-place="0"></div>
 </div>
 

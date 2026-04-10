@@ -610,7 +610,7 @@ void main() {
 
   window.scrollVelocity = 0;
   window.scrollDirection = 1;
-  window.scrollCurrent = 0;
+  window.scrollCurrent = window.scrollY;
   window.scrollStickyOffsets = window.scrollStickyOffsets || [];
 
   let smoothVel = 0;
@@ -629,7 +629,8 @@ void main() {
 
     smoothVel += (abs - smoothVel) * 0.05;
     globals.uVel.value = smoothVel;
-    camera.position.y = window.scrollCurrent * pixelToUnit;
+    const currentScroll = window.scrollCurrent ?? window.scrollY;
+    camera.position.y = currentScroll * pixelToUnit;
 
     panelsGroup.visible = false;
     renderer.setRenderTarget(renderTarget);
@@ -739,7 +740,7 @@ void main() {
           ease: "none",
         },
         scrollTrigger: {
-          trigger: this,
+          trigger: "body",
           scrub: true,
           invalidateOnRefresh: true,
           // markers: true,
