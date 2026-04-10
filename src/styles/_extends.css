@@ -18,11 +18,17 @@
 }
 
 %u-text {
-  font: var(--fw, 400) var(--fs, var(--font-size-base)) / var(--fh, 1.2) var(--font-inter);
+  font-family: 'Roboto', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  font-weight: var(--fw, 400);
+  font-size: var(--fs, var(--font-size-base));
+  line-height: var(--fh, 1.5);
   letter-spacing: var(--ls, -0.01em);
 }
 
 %u-heading {
-  font: var(--fw, 350) var(--fs, var(--font-size-base)) / var(--lh, 1.2) var(--font-roboto-slab);
+  font-family: 'Roboto Slab', 'Noto Serif SC', serif;
+  font-weight: var(--fw, 350);
+  font-size: var(--fs, var(--font-size-base));
+  line-height: var(--lh, 1.2);
   letter-spacing: var(--ls, -0.01em);
 }

@@ -90,7 +90,7 @@ export const ui = {
     'nav.about': 'About',
     'nav.search': 'Search',
     'nav.signin': 'Sign in',
-    'nav.me': 'Me',
+    'nav.me': 'Profile',
     'site.name': 'Ezer Audit',
     'footer.logoAlt': 'Ezer Audit',
     'seo.default_description': 'Ezer is an adversarial audit-grade financial analysis system. Using the red-blue adversarial mechanism, we provide investors with deep, transparent financial report auditing and analysis services.',

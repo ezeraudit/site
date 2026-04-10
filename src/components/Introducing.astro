@@ -35,7 +35,7 @@ const { title, text, cta } = Astro.props;
     z-index: 9;
     max-width: 50rem;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 1.5rem;
     text-align: center;
     gap: 1rem;
     display: flex;
@@ -44,12 +44,20 @@ const { title, text, cta } = Astro.props;
     flex-direction: column;
     border-radius: 1.5rem;
     backdrop-filter: blur(6px) saturate(1.05);
+
+    @media (--mq-phone) {
+      padding: 1.5rem 0.5rem;
+    }
   }
 
   h2 {
     --fs: 3rem;
     --lh: 1.1;
     max-width: 20em;
+
+    @media (--mq-phone) {
+      --fs: 2.5rem;
+    }
   }
 
   p {
