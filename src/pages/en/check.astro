@@ -1841,15 +1841,18 @@ if (preview !== 'true') {
             }).catch(e => console.error('Cache backfill failed', e));
         }
       }
-
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
-        // Already handled by timer above, but safety catch
-      } else {
-        showError(err.message);
-      }
+    } finally {
+      cleanup();
+    }
+  } catch (err: any) {
+    cleanup();
+    if (err.name === 'AbortError') {
+      // Already handled by timer above, but safety catch
+    } else {
+      showError(err.message);
     }
   }
+}
 
   /**
    * Helper to handle stream decoding and line processing
