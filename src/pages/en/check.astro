@@ -1705,19 +1705,21 @@ if (preview !== 'true') {
       console.log('--- Initiating Audit (Locally checking cache first) ---');
 
       let currentProgress = 5;
+      const startTime = Date.now();
       const progressTimer = setInterval(() => {
-        if (currentProgress < 35) {
-          currentProgress += Math.random() * 2; // Fast start
-        } else if (currentProgress < 85) {
-          currentProgress += Math.random() * 0.5; // Slow trickle while server works
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 1500) {
+          currentProgress = 5 + (45 * (elapsed / 1500));
+        } else if (elapsed < 15000) {
+          currentProgress = 50 + (45 * ((elapsed - 1500) / 13500));
+        } else {
+          currentProgress = 95;
         }
-        
-        const label = currentProgress < 35 
+        const label = currentProgress < 50 
           ? (lang === 'zh-CN' ? 'Connecting to audit server...' : 'Connecting to audit server...')
-          : (lang === 'zh-CN' ? 'Server deeply analyzing financial data...' : 'Server deeply analyzing financial data...');
-          
+          : (lang === 'zh-CN' ? 'Deeply analyzing financial data...' : 'Server deeply analyzing financial data...');
         setProgress(Math.floor(currentProgress), label);
-      }, 200);
+      }, 50);
 
       const localResp = await fetch(`/api/check?${apiParams.toString()}`);
       clearInterval(progressTimer);
