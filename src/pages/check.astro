@@ -1703,10 +1703,10 @@ if (preview !== 'true') {
       const startTime = Date.now();
       const progressTimer = setInterval(() => {
         const elapsed = Date.now() - startTime;
-        if (elapsed < 1500) {
-          currentProgress = 5 + (45 * (elapsed / 1500));
-        } else if (elapsed < 15000) {
-          currentProgress = 50 + (45 * ((elapsed - 1500) / 13500));
+        if (elapsed < 1200) {
+          currentProgress = 5 + (45 * (elapsed / 1200));
+        } else if (elapsed < 10000) {
+          currentProgress = 50 + (45 * ((elapsed - 1200) / 8800));
         } else {
           currentProgress = 95;
         }
@@ -1716,8 +1716,10 @@ if (preview !== 'true') {
         setProgress(Math.floor(currentProgress), label);
       }, 50);
 
-      const localResp = await fetch(`/api/check?${apiParams.toString()}`);
-      clearInterval(progressTimer);
+      const cleanup = () => clearInterval(progressTimer);
+
+      try {
+        const localResp = await fetch(`/api/check?${apiParams.toString()}`);
       const contentType = localResp.headers.get('content-type');
 
       // (A) Cache Hit Case: Process as a stream as before
@@ -1835,7 +1837,11 @@ if (preview !== 'true') {
         }
       }
 
+      } finally {
+        cleanup();
+      }
     } catch (err: any) {
+      cleanup();
       if (err.name === 'AbortError') {
         // Already handled by timer above, but safety catch
       } else {
@@ -1855,31 +1861,33 @@ if (preview !== 'true') {
     onFirstChunk?: () => void
   ) {
     if (preview === 'true') {
-      // Smoothly move progress from current to 90% over 3 seconds
-      const startPct = parseInt(progressLabel.textContent || '20');
+      // Hijack and speed up to 99%
+      const startPct = parseInt(progressLabel.textContent || '50');
       const duration = 3000;
       const startTime = Date.now();
       
       const previewTimer = setInterval(() => {
         const elapsed = Date.now() - startTime;
-        const progress = Math.min(1, elapsed / duration);
-        const currentPct = Math.floor(startPct + (95 - startPct) * progress);
+        const p = Math.min(1, elapsed / duration);
+        const currentPct = Math.floor(startPct + (99 - startPct) * p);
         
         const labels = lang === 'zh-CN' 
-          ? ['正在提取财务核心指标...', '正在构建归一化模型...', '正在执行交叉审计验证...', '正在生成预览分析报告...']
-          : ['Extracting core metrics...', 'Building normalization model...', 'Performing cross-audit...', 'Generating preview report...'];
-        const labelIdx = Math.min(labels.length - 1, Math.floor(progress * labels.length));
+          ? ['数据链路验证成功...', '正在构建归一化大模型...', '正在执行交叉审计穿透...', '财务诊断报告生成中...']
+          : ['Link verified...', 'Building AI model...', 'Executing cross-audit...', 'Generating report...'];
+        const labelIdx = Math.min(labels.length - 1, Math.floor(p * labels.length));
         
         setProgress(currentPct, labels[labelIdx]);
-        
-        if (progress >= 1) clearInterval(previewTimer);
+        if (p >= 1) clearInterval(previewTimer);
       }, 50);
 
       await new Promise(r => setTimeout(r, duration));
+      clearInterval(previewTimer);
     }
 
     loadingEl.classList.add('hidden');
     resultsEl.classList.remove('hidden');
+    // Ensure all timers are truly gone when we show results
+    if (window.loadingInterval) clearInterval(window.loadingInterval);
 
     placeholderB.start();
     placeholderC.start();
