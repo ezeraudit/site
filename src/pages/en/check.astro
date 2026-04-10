@@ -1703,9 +1703,24 @@ if (preview !== 'true') {
       apiParams.set('lang', lang);
 
       console.log('--- Initiating Audit (Locally checking cache first) ---');
-      setProgress(10, lang === 'zh-CN' ? '正在开启智能查验...' : 'Initiating smart audit...');
-      
+
+      let currentProgress = 5;
+      const progressTimer = setInterval(() => {
+        if (currentProgress < 35) {
+          currentProgress += Math.random() * 2; // Fast start
+        } else if (currentProgress < 85) {
+          currentProgress += Math.random() * 0.5; // Slow trickle while server works
+        }
+        
+        const label = currentProgress < 35 
+          ? (lang === 'zh-CN' ? 'Connecting to audit server...' : 'Connecting to audit server...')
+          : (lang === 'zh-CN' ? 'Server deeply analyzing financial data...' : 'Server deeply analyzing financial data...');
+          
+        setProgress(Math.floor(currentProgress), label);
+      }, 200);
+
       const localResp = await fetch(`/api/check?${apiParams.toString()}`);
+      clearInterval(progressTimer);
       const contentType = localResp.headers.get('content-type');
 
       // (A) Cache Hit Case: Process as a stream as before
@@ -1843,8 +1858,27 @@ if (preview !== 'true') {
     onFirstChunk?: () => void
   ) {
     if (preview === 'true') {
-      setProgress(50, lang === 'zh-CN' ? '正在渲染预览数据...' : 'Preparing preview data...');
-      await new Promise(r => setTimeout(r, 3000));
+      // Smoothly move progress from current to 90% over 3 seconds
+      const startPct = parseInt(progressLabel.textContent || '20');
+      const duration = 3000;
+      const startTime = Date.now();
+      
+      const previewTimer = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const currentPct = Math.floor(startPct + (95 - startPct) * progress);
+        
+        const labels = lang === 'zh-CN' 
+          ? ['Extracting core metrics...', 'Building normalization model...', 'Performing cross-audit...', 'Generating preview report...']
+          : ['Extracting core metrics...', 'Building normalization model...', 'Performing cross-audit...', 'Generating preview report...'];
+        const labelIdx = Math.min(labels.length - 1, Math.floor(progress * labels.length));
+        
+        setProgress(currentPct, labels[labelIdx]);
+        
+        if (progress >= 1) clearInterval(previewTimer);
+      }, 50);
+
+      await new Promise(r => setTimeout(r, duration));
     }
 
     loadingEl.classList.add('hidden');
