@@ -158,11 +158,15 @@ const { title, subtitle, mobileTitle, items } = Astro.props;
   .faq {
     padding: 1.5rem 0;
     position: relative;
-    border: solid rgba(var(--rgb-text), 0.2);
-    border-width: 1px 0 0;
+    border-top: 1px solid rgba(var(--rgb-text), 0.1);
+    transition: background-color 0.4s var(--ease-out-expo);
 
     &:last-child {
-      border-bottom-width: 1px;
+      border-bottom: 1px solid rgba(var(--rgb-text), 0.1);
+    }
+
+    &:hover {
+      background-color: rgba(var(--rgb-brand-1), 0.02);
     }
   }
 
@@ -177,16 +181,18 @@ const { title, subtitle, mobileTitle, items } = Astro.props;
 
   .answer {
     --fs: var(--font-size-sm);
-    margin-top: 0.75rem;
+    margin: 1rem 0 1.5rem;
     white-space: preserve-breaks;
-    padding-left: calc(1rem + 0.75rem);
+    padding-left: 2rem;
+    border-left: 2px solid var(--color-brand-1);
     color: var(--color-text-alt);
+    line-height: 1.7;
   }
 
   h3 {
     --fs: var(--font-size-lg);
-    --fw: 500;
-    --ls: -0.02em;
+    --fw: 600;
+    --ls: -0.01em;
 
     button {
       font: inherit;
@@ -195,7 +201,7 @@ const { title, subtitle, mobileTitle, items } = Astro.props;
   }
 
   .toggle {
-    padding: 0;
+    padding: 0.5rem 0;
     cursor: pointer;
     display: flex;
     justify-content: flex-end;
@@ -204,16 +210,22 @@ const { title, subtitle, mobileTitle, items } = Astro.props;
     border: none;
     width: 100%;
     text-align: left;
-    gap: 1rem;
+    gap: 1.5rem;
     flex-direction: row-reverse;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: var(--color-brand-1);
+    }
 
     > span:last-child {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 0.75rem;
-      height: 0.75rem;
+      width: 1rem;
+      height: 1rem;
       position: relative;
+      flex-shrink: 0;
 
       &::before,
       &::after {
@@ -224,13 +236,17 @@ const { title, subtitle, mobileTitle, items } = Astro.props;
         height: 2px;
         border-radius: 99px;
         transform: translateZ(0);
-        transition: transform 0.2s var(--ease-in-out-cubic);
+        transition: transform 0.4s var(--ease-out-back);
       }
 
       &::after {
         transform: rotate(90deg);
       }
     }
+  }
+
+  :global(.faq.is-opened .toggle) {
+    color: var(--color-brand-1);
   }
 
   :global(.faq.is-opened .toggle > span) {
