@@ -1730,6 +1730,7 @@ if (preview !== 'true') {
       // (A) Cache Hit Case: Process as a stream as before
       if (contentType && contentType.includes('application/x-ndjson')) {
         console.log('Cache Hit: Streaming from local API...');
+        cleanup();
         await handleResponseStream(localResp);
         return;
       }
@@ -1785,6 +1786,7 @@ if (preview !== 'true') {
             throw new Error(`Stream download failed: ${streamResp.status}`);
         }
         
+        cleanup();
         // Handle SSE stream using the pattern from public/examples/frontend_call_example_v1.md
         await handleResponseStream(
             streamResp, 

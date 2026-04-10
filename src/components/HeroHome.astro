@@ -16,7 +16,7 @@ const { title, subtitle, cta } = Astro.props;
   <div class="u-container container">
     <div class="inner">
       <div class="content">
-        <h1 class="u-heading title" data-sy-reveal="words">{title}</h1>
+        <h1 class="u-heading title" data-sy-reveal="words" set:html={title} />
         {
           subtitle ? (
             <p class="u-text subtitle" data-sy-reveal="lines">
@@ -109,7 +109,9 @@ const { title, subtitle, cta } = Astro.props;
   .title {
     --fs: 4rem;
     --lh: 1.1;
-    max-width: 8em;
+    max-width: 12em;
+    font-family: var(--font-roboto-slab), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    font-weight: 600;
 
     @media (--mq-phone) {
       --fs: 3rem;
