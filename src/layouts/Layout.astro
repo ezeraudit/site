@@ -21,6 +21,8 @@ const links = [
   { title: t("nav.about"), url: lang === 'zh' ? '/about/' : '/en/about/' },
   { title: t("nav.search"), url: lang === 'zh' ? '/search/' : '/en/search/' },
 ];
+
+const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/en' || Astro.url.pathname === '/en/';
 ---
 
 <html lang={lang}>
@@ -37,7 +39,7 @@ const links = [
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     { lang === 'en' ? <link rel="manifest" href="/manifest-en.webmanifest" /> : (pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />) }
-    <title>{title ? `${title} - ${t("site.name")}` : t("site.name")}</title>
+    <title>{isHome ? (title ? `${t("site.name")} - ${title}` : t("site.name")) : (title ? `${title} - ${t("site.name")}` : t("site.name"))}</title>
     <script is:inline>
       const theme = (() => {
         if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {

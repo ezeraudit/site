@@ -235,32 +235,32 @@ import logo12 from "../../assets/vercel_transparent.png";
   <Faqs
     title="Frequently Asked Questions"
     mobileTitle="FAQs"
-    subtitle="Quick answers to common questions about Ezer."
+    subtitle="Understand how Ezer is redefining the financial research workflow."
     items={[
       {
         question: "Is Ezer just calling one large model?",
         answer:
-          "No. Ezer is a multi-stage financial-report audit chain that combines proprietary financial components, a Hugging Face-published component model, high-value foundation models, and audit-style review.",
+          "No. Ezer's core is an “audit-style analysis chain.”\n\nWhile generic AI often treats PDFs as simple text summaries, Ezer uses a structured engineering pipeline—including parsing, normalization, metric decomposition, and audit review—to output conclusions. The model is just the compute unit; the true value lies in the data structuring and orchestration logic.",
       },
       {
-        question: "Why does Ezer charge?",
+        question: "How is Ezer fundamentally different from ChatGPT or Claude?",
         answer:
-          "Because Ezer does not optimize for the cheapest inference. Each report consumes a higher-cost model chain and a structured analysis/review process instead of a one-shot cheap summary.",
+          "The core difference is that generic AI “generates content,” whereas Ezer performs “analysis and review.”\n\nGeneric AI outputs untraceable text summaries; Ezer uses structured financial data and a multi-stage chain to ensure every key conclusion is anchored to original data sources, making the results fully verifiable.",
       },
       {
-        question: "What does the Hugging Face component model do?",
+        question: "Why are Ezer's analysis results more trustworthy?",
         answer:
-          "It is a proprietary component inside the broader financial-report pipeline for specialized tasks. Complex reasoning and audit review still run on high-value foundation models.",
+          "Because Ezer’s output is not a black-box “model hallucination.”\n\nOur underlying design mandates that key conclusions must be linked to data sources and major judgments must include audit evidence. The result is not just “what the model said,” but a chain of evidence that can be inspected, reviewed, and deeply traced.",
       },
       {
-        question: "Why not use cheap-model-first routing?",
+        question: "Why use the best models across the entire analysis chain?",
         answer:
-          "Financial analysis is risky when low-cost summaries make uncertain claims sound certain. Ezer spends model cost on core judgments, evidence checks, and uncertainty exposure.",
+          "In financial auditing, there is no room for “second-best” models. A single error in middle reasoning can contaminate the entire chain.\n\nInstead of using low-cost models and trying to fix the output later, Ezer matches the premier solution for every step of the chain, ensuring quality without compromise.",
       },
       {
-        question: "Does Ezer give buy or sell advice?",
+        question: "What if there is an error in the analysis?",
         answer:
-          "No. Ezer is a financial-report research assistant. It helps users understand risks, evidence, and uncertainty, but it does not replace professional investment advice or provide personalized trading recommendations.",
+          "Ezer's core value lies in its “traceability.”\n\nWe don't promise absolute perfection, but we guarantee that errors are discoverable and correctable. You can precisely locate the data source for every conclusion, inspect the reasoning path, and perform secondary verification whenever an issue is identified.",
       },
     ]}
   />
