@@ -32,5 +32,10 @@
     },
     "browserslist": [
         "defaults"
-    ]
+    ],
+    "overrides": {
+        "@vite-pwa/astro": {
+            "astro": "$astro"
+        }
+    }
 }
