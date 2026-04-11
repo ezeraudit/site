@@ -16,7 +16,9 @@ const lang = 'zh';
 
 const kvRestUrl = import.meta.env.UPSTASH_REDIS_KV_REST_API_URL;
 const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
-const kv = new Redis({ url: kvRestUrl, token: kvRestToken });
+
+// Initialize KV if credentials exist
+const kv = (kvRestUrl && kvRestToken) ? new Redis({ url: kvRestUrl, token: kvRestToken }) : null;
 
 if (slug === 'preview') {
   data = sampleData;
@@ -32,23 +34,24 @@ if (slug === 'preview') {
   
   const redisPeriod = period === 'FY' ? 'full' : period;
   const cacheKey = `cache:check:${code}:${year}:${redisPeriod}:${lang}`;
-  data = await kv.get<any[] | null>(cacheKey);
+  data = kv ? await kv.get<any[] | null>(cacheKey) : null;
 
   // Fallback for historical 'zh-CN' keys during transition
-  if (!data && lang === 'zh') {
+  if (!data && lang === 'zh' && kv) {
     const fallbackKey = `cache:check:${code}:${year}:${redisPeriod}:zh-CN`;
     data = await kv.get<any[] | null>(fallbackKey);
   }
 }
 
-if (!data) {
-  return new Response('Analysis document is being generated or was expired. Please try again later.', { 
+// 2. Ensure data is valid array
+if (!data || !Array.isArray(data)) {
+  return new Response('Analysis document is being generated, expired, or data format is invalid.', { 
     status: 503,
     headers: { 'Retry-After': '3600' }
   });
 }
 
-// 3. Data Extraction
+// 3. Dynamic Data Extraction
 const a_data = data.find(i => i.event === 'a_normalized')?.data || {};
 const final_result = data.find(i => i.event === 'final_result')?.data || {};
 
@@ -56,19 +59,27 @@ const companyName = a_data.company?.name || code;
 const reportType = period === 'FY' ? '年报' : period;
 const pageTitle = `${companyName} ${year}${reportType} 分析`;
 
-const formatSafe = (val: any, div: number = 1) => {
-  if (val === null || val === undefined || isNaN(val)) return '--';
-  return (val / div).toFixed(2);
+// Helper for safe display
+const formatValue = (val: any) => {
+  if (val === null || val === undefined || isNaN(val)) return null;
+  return val;
 };
 
-const revenue = formatSafe(a_data.income_statement?.revenue, 1e8);
-const netProfit = formatSafe(a_data.income_statement?.net_profit, 1e8);
-const grossMargin = formatSafe(a_data.income_statement?.gross_margin);
-const roe = a_data.key_ratios?.roe !== undefined && a_data.key_ratios?.roe !== null ? a_data.key_ratios?.roe : '--';
+const displayMetrics = [
+  { label: '营业收入', value: formatValue(a_data.income_statement?.revenue), unit: '元', div: 1 },
+  { label: '归母净利润', value: formatValue(a_data.income_statement?.net_profit), unit: '元', div: 1 },
+  { label: '毛利率', value: formatValue(a_data.income_statement?.gross_margin), unit: '%', div: 1 },
+  { label: 'ROE', value: formatValue(a_data.key_ratios?.roe), unit: '%', div: 1 }
+].filter(m => m.value !== null);
 
-const seoDescription = `${companyName}（${code}）${year}${reportType}详细分析。营业收入${revenue}${revenue !== '--' ? '亿' : ''}，归母净利润${netProfit}${netProfit !== '--' ? '亿' : ''}，毛利率${grossMargin}${grossMargin !== '--' ? '%' : ''}，ROE ${roe}${roe !== '--' ? '%' : ''}。Ezer通过历史财务数据，外部数据交叉验证和风险审计，让财务真相不再难以触及。`;
+const seoMetricsStr = displayMetrics.map(m => {
+  const displayVal = m.unit === '元' ? (m.value / 1e8).toFixed(2) + '亿' : m.value + m.unit;
+  return `${m.label}${displayVal}`;
+}).join('，');
 
-const checkUrl = slug === 'preview' ? '/check?preview=true' : `/check?code=${code}&year=${year}&period=${redisPeriod}`;
+const seoDescription = `${companyName}（${code}）${year}${reportType}详细分析。${seoMetricsStr}。Ezer通过历史财务数据，外部数据交叉验证和风险审计，让财务真相不再难以触及。`;
+
+const checkUrl = slug === 'preview' ? '/check?preview=true' : `/check?code=${code}&year=${year}&period=${period === 'FY' ? 'full' : period}`;
 
 // Match check.astro exactly: prefix + raw value
 const displayStatus = final_result.final_status || final_result.status || final_result.result || '';
@@ -87,25 +98,19 @@ const finalPrefix = '最终结果：';
       </div>
 
       <div class="results-container">
-        <!-- Stats Preview -->
-        <div class="stats-preview-grid">
-           <div class="stat-box">
-             <span class="stat-label">营业收入</span>
-             <span class="stat-value">{revenue}{revenue !== '--' ? '亿' : ''}</span>
-           </div>
-           <div class="stat-box">
-             <span class="stat-label">归母净利润</span>
-             <span class="stat-value">{netProfit}{netProfit !== '--' ? '亿' : ''}</span>
-           </div>
-           <div class="stat-box">
-             <span class="stat-label">毛利率</span>
-             <span class="stat-value">{grossMargin}{grossMargin !== '--' ? '%' : ''}</span>
-           </div>
-           <div class="stat-box">
-             <span class="stat-label">ROE</span>
-             <span class="stat-value">{roe}{roe !== '--' ? '%' : ''}</span>
-           </div>
-        </div>
+        <!-- Stats Preview (Dynamic) -->
+        {displayMetrics.length > 0 && (
+          <div class="stats-preview-grid">
+            {displayMetrics.map(m => (
+              <div class="stat-box">
+                <span class="stat-label">{m.label}</span>
+                <span class="stat-value">
+                  {m.unit === '元' ? (m.value / 1e8).toFixed(2) + '亿' : m.value + m.unit}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <!-- CTA Box -->
         <div class="thought-container">
