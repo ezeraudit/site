@@ -1381,17 +1381,17 @@ if (preview !== 'true') {
 
   function formatKey(key: string): string {
     const map: Record<string, string> = {
-      'name': lang === 'zh-CN' ? '公司名称' : 'Company Name',
-      'ticker': lang === 'zh-CN' ? '股票代码' : 'Ticker',
-      'reporting_period': lang === 'zh-CN' ? '报告期' : 'Period',
-      'release_date': lang === 'zh-CN' ? '发布日期' : 'Release Date',
-      'revenue': lang === 'zh-CN' ? '营业收入' : 'Revenue',
-      'net_profit': lang === 'zh-CN' ? '净利润' : 'Net Profit',
-      'gross_margin': lang === 'zh-CN' ? '毛利率' : 'Gross Margin',
-      'roe': lang === 'zh-CN' ? 'ROE' : 'ROE',
-      'total_assets': lang === 'zh-CN' ? '总资产' : 'Total Assets',
-      'total_liabilities': lang === 'zh-CN' ? '总负债' : 'Total Liabs',
-      'debt_to_asset': lang === 'zh-CN' ? '资产负债率' : 'Debt Ratio',
+      'name': lang === 'zh' ? '公司名称' : 'Company Name',
+      'ticker': lang === 'zh' ? '股票代码' : 'Ticker',
+      'reporting_period': lang === 'zh' ? '报告期' : 'Period',
+      'release_date': lang === 'zh' ? '发布日期' : 'Release Date',
+      'revenue': lang === 'zh' ? '营业收入' : 'Revenue',
+      'net_profit': lang === 'zh' ? '净利润' : 'Net Profit',
+      'gross_margin': lang === 'zh' ? '毛利率' : 'Gross Margin',
+      'roe': lang === 'zh' ? 'ROE' : 'ROE',
+      'total_assets': lang === 'zh' ? '总资产' : 'Total Assets',
+      'total_liabilities': lang === 'zh' ? '总负债' : 'Total Liabs',
+      'debt_to_asset': lang === 'zh' ? '资产负债率' : 'Debt Ratio',
     };
     return map[key] || key;
   }
@@ -1711,8 +1711,8 @@ if (preview !== 'true') {
           currentProgress = 95;
         }
         const label = currentProgress < 50 
-          ? (lang === 'zh-CN' ? '正在连接安全审计服务器...' : 'Connecting to audit server...')
-          : (lang === 'zh-CN' ? '正在深度穿透财务数据...' : 'Deeply analyzing financial data...');
+          ? (lang === 'zh' ? '正在连接安全审计服务器...' : 'Connecting to audit server...')
+          : (lang === 'zh' ? '正在深度穿透财务数据...' : 'Deeply analyzing financial data...');
         setProgress(Math.floor(currentProgress), label);
       }, 50);
 
@@ -1767,7 +1767,7 @@ if (preview !== 'true') {
         let isSuccessfullyCompleted = false;
         let timeoutId = setTimeout(() => {
           controller.abort();
-          showError(lang === 'zh-CN' ? '分析连接超时，请稍后刷新重试' : 'Connection timeout, please refresh later');
+          showError(lang === 'zh' ? '分析连接超时，请稍后刷新重试' : 'Connection timeout, please refresh later');
         }, 300000);
 
         console.log('Connecting to direct stream:', streamUrl);
@@ -1799,7 +1799,7 @@ if (preview !== 'true') {
                 clearTimeout(timeoutId);
                 timeoutId = setTimeout(() => {
                     controller.abort();
-                    showError(lang === 'zh-CN' ? '报告生成超时，请稍后刷新重试' : 'Report generation timeout, please refresh later');
+                    showError(lang === 'zh' ? '报告生成超时，请稍后刷新重试' : 'Report generation timeout, please refresh later');
                 }, 300000);
             }
         );

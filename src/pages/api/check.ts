@@ -179,7 +179,8 @@ export const GET: APIRoute = async ({ url, request }) => {
   const year = url.searchParams.get('year');
   const period = url.searchParams.get('period');
   const preview = url.searchParams.get('preview') === 'true';
-  const lang = url.searchParams.get('lang') || 'zh-CN';
+  let lang = url.searchParams.get('lang') || 'zh';
+  if (lang === 'zh-CN') lang = 'zh'; // Force normalization
 
   // 1. Handle "No Parameters" or "Preview" case - Load sample data
   if (preview || (!code && !year && !period)) {
@@ -215,7 +216,7 @@ export const GET: APIRoute = async ({ url, request }) => {
 
       // Upstash eval returns the raw string from Redis; parse it if it's not already an object
       if (typeof cachedData === 'string') {
-        try { cachedData = JSON.parse(cachedData); } catch (e) {}
+        try { cachedData = JSON.parse(cachedData); } catch (e) { }
       }
 
       if (cachedData) {
@@ -240,7 +241,7 @@ export const GET: APIRoute = async ({ url, request }) => {
           code: formattedCode,
           year: parseInt(year || '2024'),
           period: apiPeriod,
-          lang: lang === 'en' ? 'en' : 'zh-CN'
+          lang: lang === 'en' ? 'en' : 'zh-CN' // Keep backend happy if it NEEDS zh-CN, but our cacheKey is already normalized
         }
       }
     }), {
@@ -271,7 +272,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     await kv.set(cacheKey, data, { ex: CACHE_EXPIRY });
-    
+
     // Track in ZSET for Sitemap (uses timestamp as score)
     try {
       const parts = cacheKey.split(':'); // cache:check:code:year:period:lang

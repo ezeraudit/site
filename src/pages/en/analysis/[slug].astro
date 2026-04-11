@@ -30,7 +30,8 @@ if (slug === 'preview') {
   year = parts[1];
   period = parts[2];
   
-  const cacheKey = `cache:check:${code}:${year}:${period}:${lang}`;
+  const redisPeriod = period === 'FY' ? 'full' : period;
+  const cacheKey = `cache:check:${code}:${year}:${redisPeriod}:${lang}`;
   data = await kv.get<any[] | null>(cacheKey);
 }
 

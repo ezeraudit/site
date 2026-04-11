@@ -11,8 +11,8 @@ export async function GET() {
   // entries format: "code:year:period:lang"
   const entries = await kv.zrange<string[]>('analysis_index', 0, 1000, { rev: true });
 
-  const baseUrl = 'https://ezer.cc';
-  
+  const baseUrl = import.meta.env.SITE.replace(/\/$/, ''); // Remove trailing slash if any
+
   // 2. Build XML
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
@@ -20,11 +20,12 @@ export async function GET() {
   for (const entry of entries) {
     const [code, year, period, lang] = entry.split(':');
     const slugCode = code.replace('.', '_');
-    const slug = `${slugCode}-${year}-${period}`;
-    
+    const slugPeriod = period === 'full' ? 'FY' : period;
+    const slug = `${slugCode}-${year}-${slugPeriod}`;
+
     const path = lang === 'en' ? `/en/analysis/${slug}` : `/analysis/${slug}`;
     const url = `${baseUrl}${path}`;
-    
+
     xml += `
   <url>
     <loc>${url}</loc>
