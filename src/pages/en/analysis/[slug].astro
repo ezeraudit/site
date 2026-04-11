@@ -57,7 +57,7 @@ const roe = a_data.key_ratios?.roe;
 
 const seoDescription = `Detailed analysis of ${companyName} (${code}) ${year} ${reportType}. Revenue: ${revenue}B, Net Profit: ${netProfit}B, Gross Margin: ${grossMargin}%, ROE: ${roe}%. Ezer reveals the financial truth through historical records, cross-validation, and audit-grade risk assessment.`;
 
-const checkUrl = slug === 'preview' ? '/en/check?preview=true' : `/en/check?code=${code}&year=${year}&period=${period}&lang=${lang}`;
+const checkUrl = slug === 'preview' ? '/en/check?preview=true' : `/en/check?code=${code}&year=${year}&period=${redisPeriod}`;
 
 // Match check.astro exactly: prefix + raw value
 const displayStatus = final_result.final_status || final_result.status || final_result.result || '';
@@ -103,7 +103,7 @@ const finalPrefix = 'Final Result: ';
             <span class="thought-title">Detailed Analysis & Evidence</span>
           </div>
           <div class="cta-inner">
-             <a href={checkUrl} class="primary-cta-btn">Click to View</a>
+             <a href={checkUrl} class="primary-cta-btn" rel="nofollow">Click to View</a>
           </div>
         </div>
 

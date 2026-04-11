@@ -63,7 +63,7 @@ const roe = a_data.key_ratios?.roe;
 
 const seoDescription = `${companyName}（${code}）${year}${reportType}详细分析。营业收入${revenue}亿，归母净利润${netProfit}亿，毛利率${grossMargin}%，ROE ${roe}%。Ezer通过历史财务数据，外部数据交叉验证和风险审计，让财务真相不再难以触及。`;
 
-const checkUrl = slug === 'preview' ? '/check?preview=true' : `/check?code=${code}&year=${year}&period=${period}&lang=${lang}`;
+const checkUrl = slug === 'preview' ? '/check?preview=true' : `/check?code=${code}&year=${year}&period=${redisPeriod}`;
 
 // Match check.astro exactly: prefix + raw value
 const displayStatus = final_result.final_status || final_result.status || final_result.result || '';
@@ -109,7 +109,7 @@ const finalPrefix = '最终结果：';
             <span class="thought-title">详细分析与证据链</span>
           </div>
           <div class="cta-inner">
-             <a href={checkUrl} class="primary-cta-btn">点击查看</a>
+             <a href={checkUrl} class="primary-cta-btn" rel="nofollow">点击查看</a>
           </div>
         </div>
 
