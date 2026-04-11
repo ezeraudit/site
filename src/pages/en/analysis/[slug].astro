@@ -50,12 +50,17 @@ const companyName = a_data.company?.name || code;
 const reportType = period === 'FY' ? 'Annual Report' : period;
 const pageTitle = `${companyName} ${year} ${reportType} Analysis`;
 
-const revenue = (a_data.income_statement?.revenue / 1e8).toFixed(2);
-const netProfit = (a_data.income_statement?.net_profit / 1e8).toFixed(2);
-const grossMargin = a_data.income_statement?.gross_margin?.toFixed(2);
-const roe = a_data.key_ratios?.roe;
+const formatSafe = (val: any, div: number = 1) => {
+  if (val === null || val === undefined || isNaN(val)) return '--';
+  return (val / div).toFixed(2);
+};
 
-const seoDescription = `Detailed analysis of ${companyName} (${code}) ${year} ${reportType}. Revenue: ${revenue}B, Net Profit: ${netProfit}B, Gross Margin: ${grossMargin}%, ROE: ${roe}%. Ezer reveals the financial truth through historical records, cross-validation, and audit-grade risk assessment.`;
+const revenue = formatSafe(a_data.income_statement?.revenue, 1e8);
+const netProfit = formatSafe(a_data.income_statement?.net_profit, 1e8);
+const grossMargin = formatSafe(a_data.income_statement?.gross_margin);
+const roe = a_data.key_ratios?.roe !== undefined && a_data.key_ratios?.roe !== null ? a_data.key_ratios.roe : '--';
+
+const seoDescription = `Detailed analysis of ${companyName} (${code}) ${year} ${reportType}. Revenue: ${revenue}${revenue !== '--' ? 'B' : ''}, Net Profit: ${netProfit}${netProfit !== '--' ? 'B' : ''}, Gross Margin: ${grossMargin}${grossMargin !== '--' ? '%' : ''}, ROE: ${roe}${roe !== '--' ? '%' : ''}. Ezer reveals the financial truth through historical records, cross-validation, and audit-grade risk assessment.`;
 
 const checkUrl = slug === 'preview' ? '/en/check?preview=true' : `/en/check?code=${code}&year=${year}&period=${redisPeriod}`;
 
@@ -80,19 +85,19 @@ const finalPrefix = 'Final Result: ';
         <div class="stats-preview-grid">
            <div class="stat-box">
              <span class="stat-label">Revenue</span>
-             <span class="stat-value">{(a_data.income_statement?.revenue / 1e8).toFixed(2)}B</span>
+             <span class="stat-value">{revenue}{revenue !== '--' ? 'B' : ''}</span>
            </div>
            <div class="stat-box">
              <span class="stat-label">Net Profit</span>
-             <span class="stat-value">{(a_data.income_statement?.net_profit / 1e8).toFixed(2)}B</span>
+             <span class="stat-value">{netProfit}{netProfit !== '--' ? 'B' : ''}</span>
            </div>
            <div class="stat-box">
              <span class="stat-label">Gross Margin</span>
-             <span class="stat-value">{a_data.income_statement?.gross_margin?.toFixed(2)}%</span>
+             <span class="stat-value">{grossMargin}{grossMargin !== '--' ? '%' : ''}</span>
            </div>
            <div class="stat-box">
              <span class="stat-label">ROE</span>
-             <span class="stat-value">{a_data.key_ratios?.roe}%</span>
+             <span class="stat-value">{roe}{roe !== '--' ? '%' : ''}</span>
            </div>
         </div>
 
