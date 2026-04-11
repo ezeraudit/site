@@ -56,14 +56,19 @@ const companyName = a_data.company?.name || code;
 const reportType = period === 'FY' ? '年报' : period;
 const pageTitle = `${companyName} ${year}${reportType} 分析`;
 
-const revenue = (a_data.income_statement?.revenue / 1e8).toFixed(2);
-const netProfit = (a_data.income_statement?.net_profit / 1e8).toFixed(2);
-const grossMargin = a_data.income_statement?.gross_margin?.toFixed(2);
-const roe = a_data.key_ratios?.roe;
+const formatSafe = (val: any, div: number = 1) => {
+  if (val === null || val === undefined || isNaN(val)) return '--';
+  return (val / div).toFixed(2);
+};
 
-const seoDescription = `${companyName}（${code}）${year}${reportType}详细分析。营业收入${revenue}亿，归母净利润${netProfit}亿，毛利率${grossMargin}%，ROE ${roe}%。Ezer通过历史财务数据，外部数据交叉验证和风险审计，让财务真相不再难以触及。`;
+const revenue = formatSafe(a_data.income_statement?.revenue, 1e8);
+const netProfit = formatSafe(a_data.income_statement?.net_profit, 1e8);
+const grossMargin = formatSafe(a_data.income_statement?.gross_margin);
+const roe = a_data.key_ratios?.roe !== undefined && a_data.key_ratios?.roe !== null ? a_data.key_ratios.roe : '--';
 
-const checkUrl = slug === 'preview' ? '/check?preview=true' : `/check?code=${code}&year=${year}&period=${period}&lang=${lang}`;
+const seoDescription = `${companyName}（${code}）${year}${reportType}详细分析。营业收入${revenue}${revenue !== '--' ? '亿' : ''}，归母净利润${netProfit}${netProfit !== '--' ? '亿' : ''}，毛利率${grossMargin}${grossMargin !== '--' ? '%' : ''}，ROE ${roe}${roe !== '--' ? '%' : ''}。Ezer通过历史财务数据，外部数据交叉验证和风险审计，让财务真相不再难以触及。`;
+
+const checkUrl = slug === 'preview' ? '/check?preview=true' : `/check?code=${code}&year=${year}&period=${redisPeriod}`;
 
 // Match check.astro exactly: prefix + raw value
 const displayStatus = final_result.final_status || final_result.status || final_result.result || '';
@@ -86,19 +91,19 @@ const finalPrefix = '最终结果：';
         <div class="stats-preview-grid">
            <div class="stat-box">
              <span class="stat-label">营业收入</span>
-             <span class="stat-value">{(a_data.income_statement?.revenue / 1e8).toFixed(2)}亿</span>
+             <span class="stat-value">{revenue}{revenue !== '--' ? '亿' : ''}</span>
            </div>
            <div class="stat-box">
              <span class="stat-label">归母净利润</span>
-             <span class="stat-value">{(a_data.income_statement?.net_profit / 1e8).toFixed(2)}亿</span>
+             <span class="stat-value">{netProfit}{netProfit !== '--' ? '亿' : ''}</span>
            </div>
            <div class="stat-box">
              <span class="stat-label">毛利率</span>
-             <span class="stat-value">{a_data.income_statement?.gross_margin?.toFixed(2)}%</span>
+             <span class="stat-value">{grossMargin}{grossMargin !== '--' ? '%' : ''}</span>
            </div>
            <div class="stat-box">
              <span class="stat-label">ROE</span>
-             <span class="stat-value">{a_data.key_ratios?.roe}%</span>
+             <span class="stat-value">{roe}{roe !== '--' ? '%' : ''}</span>
            </div>
         </div>
 
@@ -109,7 +114,7 @@ const finalPrefix = '最终结果：';
             <span class="thought-title">详细分析与证据链</span>
           </div>
           <div class="cta-inner">
-             <a href={checkUrl} class="primary-cta-btn">点击查看</a>
+             <a href={checkUrl} class="primary-cta-btn" rel="nofollow">点击查看</a>
           </div>
         </div>
 

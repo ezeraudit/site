@@ -1068,7 +1068,7 @@ if (preview !== 'true') {
 
   // ── Helper: get lang from URL ──
   const isEn = window.location.pathname.startsWith('/en');
-  const lang = isEn ? 'en' : 'zh-CN';
+  const lang = isEn ? 'en' : 'zh';
 
   // ── Grab URL params ──
   const params = new URLSearchParams(window.location.search);
@@ -1127,7 +1127,7 @@ if (preview !== 'true') {
     }
   }
 
-  const bcMessages = lang === 'zh-CN' ? [
+  const bcMessages = lang === 'zh' ? [
     '正在多维核对财报钩稽关系...',
     '正在执行收入截止性测试...',
     '正在分析营运资金周转效率...',
@@ -1157,7 +1157,7 @@ if (preview !== 'true') {
   const placeholderC = new PlaceholderManager(textC, bcMessages);
 
   // Initialize Summary Placeholder
-  summaryText.textContent = lang === 'zh-CN' ? '正在等待分析完成...' : 'Waiting for analysis to complete...';
+  summaryText.textContent = lang === 'zh' ? '正在等待分析完成...' : 'Waiting for analysis to complete...';
   summaryText.classList.add('is-placeholder');
 
   // Toggle thought process
@@ -1210,8 +1210,8 @@ if (preview !== 'true') {
               font: { size: 10 },
               callback: (value: any) => {
                 if (suffix === '%') return value + '%';
-                if (value >= 100000000) return (value / 100000000).toFixed(1) + (lang === 'zh-CN' ? '亿' : 'B');
-                if (value >= 10000) return (value / 10000).toFixed(0) + (lang === 'zh-CN' ? '万' : '0k');
+                if (value >= 100000000) return (value / 100000000).toFixed(1) + (lang === 'zh' ? '亿' : 'B');
+                if (value >= 10000) return (value / 10000).toFixed(0) + (lang === 'zh' ? '万' : '0k');
                 return value;
               }
             }
@@ -1256,7 +1256,7 @@ if (preview !== 'true') {
               borderRadius: 4,
             },
             {
-              label: lang === 'zh-CN' ? '趋势' : 'Trend',
+              label: lang === 'zh' ? '趋势' : 'Trend',
               data: data.map(d => d.value),
               type: 'line',
               borderColor: 'rgba(124, 58, 237, 1)',
@@ -1385,17 +1385,17 @@ if (preview !== 'true') {
 
   function formatKey(key: string): string {
     const map: Record<string, string> = {
-      'name': lang === 'zh-CN' ? '公司名称' : 'Company Name',
-      'ticker': lang === 'zh-CN' ? '股票代码' : 'Ticker',
-      'reporting_period': lang === 'zh-CN' ? '报告期' : 'Period',
-      'release_date': lang === 'zh-CN' ? '发布日期' : 'Release Date',
-      'revenue': lang === 'zh-CN' ? '营业收入' : 'Revenue',
-      'net_profit': lang === 'zh-CN' ? '净利润' : 'Net Profit',
-      'gross_margin': lang === 'zh-CN' ? '毛利率' : 'Gross Margin',
-      'roe': lang === 'zh-CN' ? 'ROE' : 'ROE',
-      'total_assets': lang === 'zh-CN' ? '总资产' : 'Total Assets',
-      'total_liabilities': lang === 'zh-CN' ? '总负债' : 'Total Liabs',
-      'debt_to_asset': lang === 'zh-CN' ? '资产负债率' : 'Debt Ratio',
+      'name': lang === 'zh' ? '公司名称' : 'Company Name',
+      'ticker': lang === 'zh' ? '股票代码' : 'Ticker',
+      'reporting_period': lang === 'zh' ? '报告期' : 'Period',
+      'release_date': lang === 'zh' ? '发布日期' : 'Release Date',
+      'revenue': lang === 'zh' ? '营业收入' : 'Revenue',
+      'net_profit': lang === 'zh' ? '净利润' : 'Net Profit',
+      'gross_margin': lang === 'zh' ? '毛利率' : 'Gross Margin',
+      'roe': lang === 'zh' ? 'ROE' : 'ROE',
+      'total_assets': lang === 'zh' ? '总资产' : 'Total Assets',
+      'total_liabilities': lang === 'zh' ? '总负债' : 'Total Liabs',
+      'debt_to_asset': lang === 'zh' ? '资产负债率' : 'Debt Ratio',
     };
     return map[key] || key;
   }
@@ -1489,12 +1489,12 @@ if (preview !== 'true') {
         const companyName = company.name || '';
         let periodText = company.reporting_period || '';
         // Localize 'FY' to '年度' for Chinese
-        if (lang === 'zh-CN' && periodText.toLowerCase().includes('fy')) {
+        if (lang === 'zh' && periodText.toLowerCase().includes('fy')) {
           periodText = periodText.replace(/fy/i, '年度');
         }
 
         if (companyName) {
-            const titleSuffix = lang === 'zh-CN' ? '财报分析' : 'Financial Report Analysis';
+            const titleSuffix = lang === 'zh' ? '财报分析' : 'Financial Report Analysis';
             pageTitleEl.textContent = `${companyName} (${periodText}) ${titleSuffix}`;
             document.title = `${companyName} (${periodText}) ${titleSuffix} - Ezer Audit`;
         }
@@ -1507,8 +1507,8 @@ if (preview !== 'true') {
       if (!d) return;
 
       if (event === 'b_progress') {
-        const stepPrefix = lang === 'zh-CN' ? '正在' : 'Analyzing';
-        writers.b.writeHTML(`<div class="progress-update"><i>› ${stepPrefix} ${d.task || d.step || (lang === 'zh-CN' ? '执行分析' : 'Performing Analysis')}...</i></div>`);
+        const stepPrefix = lang === 'zh' ? '正在' : 'Analyzing';
+        writers.b.writeHTML(`<div class="progress-update"><i>› ${stepPrefix} ${d.task || d.step || (lang === 'zh' ? '执行分析' : 'Performing Analysis')}...</i></div>`);
         return;
       }
 
@@ -1534,9 +1534,9 @@ if (preview !== 'true') {
         card.appendChild(detailsList);
 
         const fields = [
-          { key: 'evidence', label: lang === 'zh-CN' ? '依据' : 'Evidence' },
-          { key: 'cross_checks', label: lang === 'zh-CN' ? '交叉验证' : 'Cross-checks' },
-          { key: 'counterpoints', label: lang === 'zh-CN' ? '反向观点' : 'Counterpoints' }
+          { key: 'evidence', label: lang === 'zh' ? '依据' : 'Evidence' },
+          { key: 'cross_checks', label: lang === 'zh' ? '交叉验证' : 'Cross-checks' },
+          { key: 'counterpoints', label: lang === 'zh' ? '反向观点' : 'Counterpoints' }
         ];
 
         for (const field of fields) {
@@ -1555,7 +1555,7 @@ if (preview !== 'true') {
         if (d.investor_implication) {
           const implication = document.createElement('p');
           implication.className = 'implication';
-          const labelImplication = lang === 'zh-CN' ? '投资启示' : 'Investor Implication';
+          const labelImplication = lang === 'zh' ? '投资启示' : 'Investor Implication';
           implication.innerHTML = `<span class="label">${labelImplication}:</span> `;
           const textSpan = document.createElement('span');
           implication.appendChild(textSpan);
@@ -1571,15 +1571,15 @@ if (preview !== 'true') {
       if (!d) return;
 
       if (event === 'c_progress') {
-        const stepPrefix = lang === 'zh-CN' ? '正在' : 'Analyzing';
-        writers.c.writeHTML(`<div class="progress-update"><i>› ${stepPrefix} ${d.task || d.step || (lang === 'zh-CN' ? '执行审计' : 'Performing Audit')}...</i></div>`);
+        const stepPrefix = lang === 'zh' ? '正在' : 'Analyzing';
+        writers.c.writeHTML(`<div class="progress-update"><i>› ${stepPrefix} ${d.task || d.step || (lang === 'zh' ? '执行审计' : 'Performing Audit')}...</i></div>`);
         return;
       }
 
       if (event === 'c_challenge') {
         const div = document.createElement('div');
         div.className = 'audit-item challenge';
-        const labelChallenge = lang === 'zh-CN' ? '审计挑战' : 'Audit Challenge';
+        const labelChallenge = lang === 'zh' ? '审计挑战' : 'Audit Challenge';
         div.innerHTML = `<div class="audit-icon-text">⚠️ ${labelChallenge} (${d.severity || 'MEDIUM'})</div>`;
         const content = document.createElement('div');
         content.className = 'audit-content';
@@ -1587,7 +1587,7 @@ if (preview !== 'true') {
         if (d.target_card_id) {
           const meta = document.createElement('div');
           meta.className = 'audit-meta';
-          const labelTarget = lang === 'zh-CN' ? '针对' : 'Target';
+          const labelTarget = lang === 'zh' ? '针对' : 'Target';
           meta.textContent = `${labelTarget}: ${d.target_card_id}`;
           div.appendChild(meta);
         }
@@ -1598,7 +1598,7 @@ if (preview !== 'true') {
       if (event === 'c_resolved' || event === 'audit') {
         const div = document.createElement('div');
         div.className = 'audit-item resolved';
-        const labelResolved = lang === 'zh-CN' ? '审计通过' : 'Audit Resolved';
+        const labelResolved = lang === 'zh' ? '审计通过' : 'Audit Resolved';
         div.innerHTML = `<div class="audit-icon-text">✅ ${labelResolved}</div>`;
         const content = document.createElement('div');
         content.className = 'audit-content';
@@ -1606,7 +1606,7 @@ if (preview !== 'true') {
         if (d.target_card_id) {
           const meta = document.createElement('div');
           meta.className = 'audit-meta';
-          const labelFix = lang === 'zh-CN' ? '解决项' : 'Fixed';
+          const labelFix = lang === 'zh' ? '解决项' : 'Fixed';
           meta.textContent = `${labelFix}: ${d.target_card_id}`;
           div.appendChild(meta);
         }
@@ -1632,7 +1632,7 @@ if (preview !== 'true') {
       const d = data || item.data;
       if (d) {
         finalResultText.classList.remove('hidden');
-        const prefix = lang === 'zh-CN' ? '最终结果：' : 'Final Result: ';
+        const prefix = lang === 'zh' ? '最终结果：' : 'Final Result: ';
         finalResultText.textContent = prefix + (d.final_status || d.status || d.result || '');
       }
     }
@@ -1716,8 +1716,8 @@ if (preview !== 'true') {
           currentProgress = 95;
         }
         const label = currentProgress < 50 
-          ? (lang === 'zh-CN' ? 'Connecting to audit server...' : 'Connecting to audit server...')
-          : (lang === 'zh-CN' ? 'Server deeply analyzing financial data...' : 'Server deeply analyzing financial data...');
+          ? (lang === 'zh' ? 'Connecting to audit server...' : 'Connecting to audit server...')
+          : (lang === 'zh' ? 'Server deeply analyzing financial data...' : 'Server deeply analyzing financial data...');
         setProgress(Math.floor(currentProgress), label);
       }, 50);
 
@@ -1877,7 +1877,7 @@ if (preview !== 'true') {
         const p = Math.min(1, elapsed / duration);
         const currentPct = Math.floor(startPct + (99 - startPct) * p);
         
-        const labels = lang === 'zh-CN' 
+        const labels = lang === 'zh' 
           ? ['Link verified...', 'Building AI model...', 'Executing cross-audit...', 'Generating report...']
           : ['Link verified...', 'Building AI model...', 'Executing cross-audit...', 'Generating report...'];
         const labelIdx = Math.min(labels.length - 1, Math.floor(p * labels.length));
