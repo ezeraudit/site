@@ -58,7 +58,7 @@ const formatSafe = (val: any, div: number = 1) => {
 const revenue = formatSafe(a_data.income_statement?.revenue, 1e8);
 const netProfit = formatSafe(a_data.income_statement?.net_profit, 1e8);
 const grossMargin = formatSafe(a_data.income_statement?.gross_margin);
-const roe = a_data.key_ratios?.roe !== undefined && a_data.key_ratios?.roe !== null ? a_data.key_ratios.roe : '--';
+const roe = a_data.key_ratios?.roe !== undefined && a_data.key_ratios?.roe !== null ? a_data.key_ratios?.roe : '--';
 
 const seoDescription = `Detailed analysis of ${companyName} (${code}) ${year} ${reportType}. Revenue: ${revenue}${revenue !== '--' ? 'B' : ''}, Net Profit: ${netProfit}${netProfit !== '--' ? 'B' : ''}, Gross Margin: ${grossMargin}${grossMargin !== '--' ? '%' : ''}, ROE: ${roe}${roe !== '--' ? '%' : ''}. Ezer reveals the financial truth through historical records, cross-validation, and audit-grade risk assessment.`;
 

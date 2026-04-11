@@ -64,7 +64,7 @@ const formatSafe = (val: any, div: number = 1) => {
 const revenue = formatSafe(a_data.income_statement?.revenue, 1e8);
 const netProfit = formatSafe(a_data.income_statement?.net_profit, 1e8);
 const grossMargin = formatSafe(a_data.income_statement?.gross_margin);
-const roe = a_data.key_ratios?.roe !== undefined && a_data.key_ratios?.roe !== null ? a_data.key_ratios.roe : '--';
+const roe = a_data.key_ratios?.roe !== undefined && a_data.key_ratios?.roe !== null ? a_data.key_ratios?.roe : '--';
 
 const seoDescription = `${companyName}（${code}）${year}${reportType}详细分析。营业收入${revenue}${revenue !== '--' ? '亿' : ''}，归母净利润${netProfit}${netProfit !== '--' ? '亿' : ''}，毛利率${grossMargin}${grossMargin !== '--' ? '%' : ''}，ROE ${roe}${roe !== '--' ? '%' : ''}。Ezer通过历史财务数据，外部数据交叉验证和风险审计，让财务真相不再难以触及。`;
 
