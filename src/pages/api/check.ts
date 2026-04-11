@@ -206,10 +206,20 @@ export const GET: APIRoute = async ({ url, request }) => {
   try {
     // 3. Check KV Cache
     if (kv) {
-      let cachedData = await kv.get<any[]>(cacheKey);
+      // Use Lua script to GET and EXPIRE in one atomic command (1 command cost)
+      let cachedData = await kv.eval<any>(
+        "local val = redis.call('GET', KEYS[1]); if val then redis.call('EXPIRE', KEYS[1], ARGV[1]) end; return val;",
+        [cacheKey],
+        [CACHE_EXPIRY]
+      );
+
+      // Upstash eval returns the raw string from Redis; parse it if it's not already an object
+      if (typeof cachedData === 'string') {
+        try { cachedData = JSON.parse(cachedData); } catch (e) {}
+      }
 
       if (cachedData) {
-        console.log(`[Cache Hit] ${cacheKey}`);
+        console.log(`[Cache Hit & Extended] ${cacheKey}`);
         return createDelayedStream(cachedData);
       }
     }
@@ -261,6 +271,18 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     await kv.set(cacheKey, data, { ex: CACHE_EXPIRY });
+    
+    // Track in ZSET for Sitemap (uses timestamp as score)
+    try {
+      const parts = cacheKey.split(':'); // cache:check:code:year:period:lang
+      if (parts.length >= 6) {
+        const entry = `${parts[2]}:${parts[3]}:${parts[4]}:${parts[5]}`;
+        await kv.zadd('analysis_index', { score: Date.now(), member: entry });
+      }
+    } catch (zerr) {
+      console.warn('[ZSET Error]', zerr);
+    }
+
     console.log(`[Cache Stored via POST] ${cacheKey}`);
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });

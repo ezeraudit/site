@@ -14,7 +14,7 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
 const metaDescription = description || t("seo.default_description");
-const metaKeywords = keywords || t("seo.default_keywords");
+const metaKeywords = keywords; // No default fallback here
 
 const links = [
   { title: t("nav.home"), url: lang === 'zh' ? '/' : '/en/' },
@@ -30,7 +30,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/en' || Ast
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={metaDescription} />
-    <meta name="keywords" content={metaKeywords} />
+    {metaKeywords && <meta name="keywords" content={metaKeywords} />}
     <link href="https://fonts.cat.net/css2?family=Noto+Sans+SC:wght@100..900&family=Noto+Serif+SC:wght@200..900&family=Roboto+Slab:wght@100..900&family=Roboto:wght@100..900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
