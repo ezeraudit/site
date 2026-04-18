@@ -1,7 +1,8 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import { Redis } from '@upstash/redis';
-import { sampleData } from "../../../data/sampleData";
+import nvdaData from "../../../data/nvda_oq_2026fy_en_result_latest.json";
+import zhongjiData from "../../../data/zhongji_300308_sz_2026q1_zh_result_latest.json";
 
 export const prerender = false; // SSR mode
 
@@ -21,7 +22,7 @@ const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
 const kv = (kvRestUrl && kvRestToken) ? new Redis({ url: kvRestUrl, token: kvRestToken }) : null;
 
 if (slug === 'preview') {
-  data = sampleData;
+  data = lang === 'en' ? nvdaData.stream : zhongjiData.stream;
   code = "601899.SH";
   year = "2024";
   period = "FY";
