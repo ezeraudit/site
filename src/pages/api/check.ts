@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { Redis } from '@upstash/redis';
-import { sampleData } from '../../data/sampleData';
+import nvdaData from '../../../docs/frontend_cache_samples_20260418/nvda_oq_2026fy_en_result_latest.json';
+import zhongjiData from '../../../docs/frontend_cache_samples_20260418/zhongji_300308_sz_2026q1_zh_result_latest.json';
 
 const kvRestUrl = import.meta.env.UPSTASH_REDIS_KV_REST_API_URL;
 const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
@@ -184,7 +185,8 @@ export const GET: APIRoute = async ({ url, request }) => {
 
   // 1. Handle "No Parameters" or "Preview" case - Load sample data
   if (preview || (!code && !year && !period)) {
-    return createDelayedStream(sampleData);
+    const previewData = lang === 'en' ? nvdaData.stream : zhongjiData.stream;
+    return createDelayedStream(previewData);
   }
 
   // 1.5 Quota Enforcement (Server Side)
