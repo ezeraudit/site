@@ -32,4 +32,16 @@ Push the preview-cache update for the check page:
 
 ## Post-change Result
 
-- Pending.
+- Completed.
+- Pushed commit: `f717a6f` `feat: use localized preview cache samples`
+- Push output confirmed update: `b2a48f2..f717a6f  dev -> dev`
+- GitHub remote notice: repository moved to `https://github.com/ezercc/ezer-audit.git`; current `origin` push still succeeded through the existing remote URL.
+- Local npm verification was skipped per user instruction.
+- Remaining local uncommitted changes were not included in the push:
+  - `src/i18n/ui.ts`
+  - `src/pages/about.astro`
+  - `src/pages/en/about.astro`
+  - `src/pages/premium.astro`
+  - `src/pages/en/premium.astro`
+  - `docs/ezer_faq_v2_summary.docx`
+  - `docs/ezer_faq_v2_summary.html`
