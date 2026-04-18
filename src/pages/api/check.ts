@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { Redis } from '@upstash/redis';
-import nvdaData from '../../data/nvda_oq_2026fy_en_result_latest.json';
-import zhongjiData from '../../data/zhongji_300308_sz_2026q1_zh_result_latest.json';
+import nvdaData from '../../../data/nvda_oq_2026fy_en_result_latest.json';
+import zhongjiData from '../../../data/zhongji_300308_sz_2026q1_zh_result_latest.json';
 
 const kvRestUrl = import.meta.env.UPSTASH_REDIS_KV_REST_API_URL;
 const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;

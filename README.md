@@ -2,7 +2,7 @@
 
 弈泽（Ezer）是一套相对固定、可复核、可追踪的财报分析工作流。
 
-**网站地址： https://audit.ezer.cc/ （English Version: https://audit.ezer.cc/ ）**
+**网站地址： https://audit.ezer.cc/ （English Version: https://audit.ezer.cc/en/ ）**
 
 ## 💡 为什么发起这个项目？
 
