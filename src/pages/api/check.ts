@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { Redis } from '@upstash/redis';
 import nvdaData from '../../data/nvda_oq_2026fy_en_result_latest.json';
-import zhongjiData from '../../data/zhongji_300308_sz_2026q1_zh_result_latest.json';
+import zhongjiData from '../../data/innolight_300308_sz_2026q1_stream_with_i.frontend.json';
 
 const kvRestUrl = import.meta.env.UPSTASH_REDIS_KV_REST_API_URL;
 const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
@@ -313,6 +313,11 @@ function createDelayedStream(data: any[]) {
     return p === 'B' || p === 'ANALYZER';
   });
 
+  const groupI = data.filter(item => {
+    const p = (item.producer || '').toUpperCase();
+    return p === 'I' || p === 'INDUSTRY';
+  });
+
   const groupC = data.filter(item => {
     const p = (item.producer || '').toUpperCase();
     const e = item.event || '';
@@ -326,16 +331,21 @@ function createDelayedStream(data: any[]) {
         await new Promise(r => setTimeout(r, delay));
       };
 
-      for (const item of groupA) await send(item, 2000);
+      for (const item of groupA) await send(item, 500);
 
       if (groupB.length > 0) {
-        await new Promise(r => setTimeout(r, 10000));
-        for (const item of groupB) await send(item, 4000);
+        await new Promise(r => setTimeout(r, 1000));
+        for (const item of groupB) await send(item, 1000);
+      }
+
+      if (groupI.length > 0) {
+        await new Promise(r => setTimeout(r, 1000));
+        for (const item of groupI) await send(item, 1000);
       }
 
       if (groupC.length > 0) {
-        await new Promise(r => setTimeout(r, 10000));
-        for (const item of groupC) await send(item, 4000);
+        await new Promise(r => setTimeout(r, 1000));
+        for (const item of groupC) await send(item, 1000);
       }
 
       controller.close();
