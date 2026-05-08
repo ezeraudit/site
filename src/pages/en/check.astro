@@ -1702,19 +1702,26 @@ const translations = ui[lang];
     const p = (producer || '').toUpperCase();
 
     // Industry News Event (Section I)
-    if (event === 'i_industry_wordsea') {
+    if (event === 'i_industry_wordsea' || event === 'industry_wordsea' || event === 'i_industry_word_cloud' || (p === 'I' && (event === 'data' || event === 'wordsea' || event === 'i_industry_wordsea'))) {
       const industryGrid = document.querySelector('.industry-grid');
       if (industryGrid) industryGrid.classList.remove('hidden');
       
-      const d = data || item.data;
-      if (d && d.rows) {
-        const keywords = d.rows.map((row: any) => {
+      let d = data || item.data || item;
+      if (typeof d === 'string') {
+        try {
+          d = JSON.parse(d);
+        } catch (e) {}
+      }
+      
+      const rows = d && (d.rows || d.items || d.list || (Array.isArray(d) ? d : null));
+      if (rows && Array.isArray(rows)) {
+        const keywords = rows.map((row: any) => {
           const keyword = Array.isArray(row) ? row[0] : (row.keyword || row.word || '');
           const count = Array.isArray(row) ? row[1] : (row.count || row.weight || 1);
           return [keyword, count];
         });
         const newsMap = new Map();
-        d.rows.forEach((row: any) => {
+        rows.forEach((row: any) => {
           const keyword = Array.isArray(row) ? row[0] : (row.keyword || row.word || '');
           const count = Array.isArray(row) ? row[1] : (row.count || row.weight || 1);
           const articles = Array.isArray(row) ? row[2] : (row.links || row.articles || []);
@@ -2256,12 +2263,23 @@ const translations = ui[lang];
 
     newsList.innerHTML = '';
 
-    articles.forEach((article, index) => {
+    const arr = Array.isArray(articles) ? articles : [];
+    arr.forEach((article, index) => {
       if (!article) return;
-      const title = Array.isArray(article) ? article[0] : (article.title || '');
-      const rawDate = Array.isArray(article) ? article[1] : (article.date || article.generated_at || '');
-      const source = Array.isArray(article) ? article[2] : (article.source || '');
-      const url = Array.isArray(article) ? article[3] : (article.source_url || article.url || '');
+      
+      let itemObj = article;
+      if (typeof itemObj === 'string') {
+        try {
+          itemObj = JSON.parse(itemObj);
+        } catch (e) {
+          itemObj = [article, '', 'Choice金融数据库', ''];
+        }
+      }
+      
+      const title = Array.isArray(itemObj) ? itemObj[0] : (itemObj.title || '');
+      const rawDate = Array.isArray(itemObj) ? itemObj[1] : (itemObj.date || itemObj.generated_at || '');
+      const source = Array.isArray(itemObj) ? itemObj[2] : (itemObj.source || '');
+      const url = Array.isArray(itemObj) ? itemObj[3] : (itemObj.source_url || itemObj.url || '');
       
       // Format date: 2024-05-01 12:00 -> 24/05/01
       const formattedDate = String(rawDate).substring(2, 10).replace(/-/g, '/');
