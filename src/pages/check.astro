@@ -2287,12 +2287,16 @@ const translations = ui[lang];
       item.className = 'news-item';
       item.style.animationDelay = `${index * 0.05}s`;
 
+      const linkHtml = url 
+        ? `<a href="${url}" target="_blank" rel="noreferrer" class="meta-pill source">${sourceDisplay}</a>`
+        : `<span class="meta-pill source">${sourceDisplay}</span>`;
+
       item.innerHTML = `
         <span class="news-bullet">•</span>
         <div class="news-title-wrapper">
           <span class="news-title">${title}</span>
           <span class="news-date">${formattedDate}</span>
-          <a href="${url}" target="_blank" class="meta-pill source">${sourceDisplay}</a>
+          ${linkHtml}
         </div>
       `;
       newsList.appendChild(item);
