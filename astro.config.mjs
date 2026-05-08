@@ -11,7 +11,7 @@ import AstroPWA from "@vite-pwa/astro";
 // https://astro.build/config
 export default defineConfig({
   site: 'https://audit.ezer.cc/',
-  output: 'server',
+  output: 'static',
   adapter: vercel(),
   scopedStyleStrategy: 'where',
   i18n: {

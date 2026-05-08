@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { Redis } from '@upstash/redis';
+import { brotliDecompressSync } from 'zlib';
 import nvdaData from '../../data/nvda_oq_2026fy_en_result_latest.json';
 import zhongjiData from '../../data/innolight_300308_sz_2026q1_stream_with_i.frontend.json';
 
@@ -13,9 +14,25 @@ const kv = (kvRestUrl && kvRestToken)
   ? new Redis({ url: kvRestUrl, token: kvRestToken })
   : null;
 
-const BACKEND_API = 'https://api.ezer.cc/api/tasks';
+const API_BASE = (import.meta.env.EZER_AUDIT_API_BASE || "https://api.ezer.cc").replace(/\/$/, "");
+const BACKEND_API = `${API_BASE}/api/tasks`;
 const BACKEND_TOKEN = import.meta.env.BACKEND_TOKEN;
 const CACHE_EXPIRY = 30 * 24 * 60 * 60; // 30 days in seconds
+
+/**
+ * Helper to decompress Brotli data from a Base64 string
+ */
+function decompressBrotliBase64(base64Str: string): any {
+  try {
+    const buffer = Buffer.from(base64Str, 'base64');
+    const decompressed = brotliDecompressSync(buffer);
+    const jsonStr = decompressed.toString('utf8');
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    console.error('[Brotli Decompression Error]', err);
+    return null;
+  }
+}
 
 /**
  * Helper to get user via Supabase Auth
@@ -216,14 +233,43 @@ export const GET: APIRoute = async ({ url, request }) => {
         [CACHE_EXPIRY]
       );
 
-      // Upstash eval returns the raw string from Redis; parse it if it's not already an object
-      if (typeof cachedData === 'string') {
-        try { cachedData = JSON.parse(cachedData); } catch (e) { }
-      }
-
       if (cachedData) {
         console.log(`[Cache Hit & Extended] ${cacheKey}`);
-        return createDelayedStream(cachedData);
+        
+        let streamEvents = cachedData;
+        
+        // Handle decompression or parsing depending on format
+        if (typeof cachedData === 'string') {
+          try {
+            // Try parsing as plain JSON first
+            const parsed = JSON.parse(cachedData);
+            if (Array.isArray(parsed)) {
+              streamEvents = parsed;
+            } else if (parsed && Array.isArray(parsed.stream)) {
+              streamEvents = parsed.stream;
+            } else {
+              // Not standard array, try treating it as Brotli Base64
+              const decompressed = decompressBrotliBase64(cachedData);
+              if (decompressed) {
+                streamEvents = Array.isArray(decompressed) ? decompressed : (decompressed.stream || decompressed);
+              }
+            }
+          } catch (e) {
+            // Parsing as JSON failed, so treat as Brotli Base64
+            const decompressed = decompressBrotliBase64(cachedData);
+            if (decompressed) {
+              streamEvents = Array.isArray(decompressed) ? decompressed : (decompressed.stream || decompressed);
+            }
+          }
+        } else if (cachedData && Array.isArray(cachedData.stream)) {
+          streamEvents = cachedData.stream;
+        }
+
+        if (Array.isArray(streamEvents)) {
+          return createDelayedStream(streamEvents);
+        } else {
+          console.warn(`[Cache Corrupted or Invalid Format] ${cacheKey}`);
+        }
       }
     }
 

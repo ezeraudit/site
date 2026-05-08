@@ -7,28 +7,6 @@ import QuotaBanner from "../../components/QuotaBanner.astro";
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const translations = ui[lang];
-
-// Check parameters
-const code = Astro.url.searchParams.get('code');
-const year = Astro.url.searchParams.get('year');
-const period = Astro.url.searchParams.get('period');
-const preview = Astro.url.searchParams.get('preview');
-
-// 1. No parameters -> Redirect to search
-if (!code && !year && !period && !preview) {
-  return Astro.redirect(lang === 'zh' ? '/search/' : '/en/search/');
-}
-
-// 2. Auth check if not preview
-if (preview !== 'true') {
-  const cookies = Astro.request.headers.get('cookie') || '';
-  const hasSession = cookies.includes('sb-msufgvqofnihylcnxyac-auth-token');
-  
-  if (!hasSession) {
-    const loginUrl = `https://account.ezer.cc/${lang === 'en' ? 'en/' : ''}login/?redirect=${encodeURIComponent(Astro.url.href)}`;
-    return Astro.redirect(loginUrl);
-  }
-}
 ---
 
 <!-- Injected i18n for client-side script -->
@@ -1276,6 +1254,25 @@ if (preview !== 'true') {
   const period = params.get('period');
   const preview = params.get('preview');
 
+  let shouldRun = true;
+  // 1. No parameters -> Redirect to search
+  if (!code && !year && !period && !preview) {
+    window.location.href = lang === 'zh' ? '/search/' : '/en/search/';
+    shouldRun = false;
+  }
+
+  // 2. Auth check if not preview
+  if (shouldRun && preview !== 'true') {
+    const cookies = document.cookie || '';
+    const hasSession = cookies.includes('sb-msufgvqofnihylcnxyac-auth-token');
+    
+    if (!hasSession) {
+      const loginUrl = `https://account.ezer.cc/${lang === 'en' ? 'en/' : ''}login/?redirect=${encodeURIComponent(window.location.href)}`;
+      window.location.href = loginUrl;
+      shouldRun = false;
+    }
+  }
+
   // DOM refs
   const loadingEl = document.getElementById('loading-container')!;
   const errorEl = document.getElementById('error-container')!;
@@ -2008,12 +2005,20 @@ if (preview !== 'true') {
         
         const taskData = await taskResp.json();
         const taskId = taskData.task_id;
-        const rawStreamUrl = taskData.stream_url;
-        const rawResultUrl = taskData.result_url;
+        
+        const apiBase = new URL(api).origin;
+        function toBackendUrl(rawUrl?: string | null) {
+          if (!rawUrl) return null;
+          if (rawUrl.startsWith('http')) return rawUrl;
+          return `${apiBase}${rawUrl}`;
+        }
 
-        if (!rawStreamUrl) throw new Error('No stream_url from backend');
-        const streamUrl = rawStreamUrl.startsWith('http') ? rawStreamUrl : `https://api.ezer.cc${rawStreamUrl}`;
-        const resultUrl = rawResultUrl ? (rawResultUrl.startsWith('http') ? rawResultUrl : `https://api.ezer.cc${rawResultUrl}`) : null;
+        const streamUrl = toBackendUrl(taskData.stream_url);
+        const resultUrl = toBackendUrl(taskData.result_url);
+        const resultBrUrl = toBackendUrl(taskData.result_br_url);
+        const resultBrRawUrl = toBackendUrl(taskData.result_br_raw_url);
+
+        if (!streamUrl) throw new Error('No stream_url from backend');
 
         // Step 2: Stream from backend with a 5-minute initial connection timeout
         const controller = new AbortController();
@@ -2059,18 +2064,17 @@ if (preview !== 'true') {
 
         clearTimeout(timeoutId);
 
-        // Step 3: Fetch Final Result if available
-        if (resultUrl && collectedData.length > 0) {
-            console.log('Fetching final result for data verification...');
+        // Step 3: Fetch Final Result from auto-decoding Brotli endpoint if available, otherwise fallback to resultUrl
+        const finalFetchUrl = resultBrUrl || resultUrl;
+        if (finalFetchUrl && collectedData.length > 0) {
+            console.log('Fetching final result for data verification from:', finalFetchUrl);
             try {
-                const finalResp = await fetch(resultUrl, {
+                const finalResp = await fetch(finalFetchUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (finalResp.ok) {
                     const finalData = await finalResp.json();
-                    // Process final result if needed, e.g., to backfill missing fields
                     console.log('Final Result Data:', finalData);
-                    // Standard backend format is to put everything in final_payload
                     const payload = finalData.final_payload;
                     if (payload) {
                         // Optionally merge or sync with collectedData
@@ -2084,11 +2088,71 @@ if (preview !== 'true') {
         // Step 4: Backfill Cache only if successfully completed
         if (isSuccessfullyCompleted && collectedData.length > 0) {
             console.log('Analysis complete and verified. Backfilling cache...');
-            fetch('/api/check', {
+            
+            const backfillCache = async () => {
+              if (resultBrRawUrl) {
+                try {
+                  console.log('Fetching raw Brotli file for cache backfill:', resultBrRawUrl);
+                  const brResp = await fetch(resultBrRawUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (brResp.ok) {
+                    const arrayBuffer = await brResp.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    let binary = '';
+                    const len = uint8Array.byteLength;
+                    for (let i = 0; i < len; i++) {
+                      binary += String.fromCharCode(uint8Array[i]);
+                    }
+                    const base64Data = btoa(binary);
+                    
+                    console.log('Storing raw Brotli Base64 in Redis cache...');
+                    const postResp = await fetch('/api/check', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ cacheKey, data: base64Data })
+                    });
+                    console.log('Brotli cache backfill response code:', postResp.status);
+                    return;
+                  }
+                } catch (brErr) {
+                  console.warn('Failed to fetch raw Brotli file, falling back to resultUrl or collectedData:', brErr);
+                }
+              }
+              
+              // Fallback 1: Plain result JSON
+              if (resultUrl) {
+                try {
+                  console.log('Falling back: Fetching plain result JSON for cache backfill...');
+                  const resResp = await fetch(resultUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (resResp.ok) {
+                    const resData = await resResp.json();
+                    await fetch('/api/check', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ cacheKey, data: resData })
+                    });
+                    console.log('Plain JSON cache backfill successful');
+                    return;
+                  }
+                } catch (resErr) {
+                  console.warn('Failed to fetch plain result JSON for cache backfill:', resErr);
+                }
+              }
+              
+              // Fallback 2: Stream events array
+              console.log('Falling back: Storing collectedData in cache...');
+              await fetch('/api/check', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cacheKey, data: collectedData })
-            }).catch(e => console.error('Cache backfill failed', e));
+              });
+              console.log('collectedData cache backfill successful');
+            };
+            
+            backfillCache().catch(err => console.error('Cache backfill failed:', err));
         }
       }
     } finally {
@@ -2357,5 +2421,7 @@ if (preview !== 'true') {
   };
   setupAreaScroll();
 
-  main();
+  if (shouldRun) {
+    main();
+  }
 </script>
