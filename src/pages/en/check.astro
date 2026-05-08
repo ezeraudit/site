@@ -1708,10 +1708,17 @@ const translations = ui[lang];
       
       const d = data || item.data;
       if (d && d.rows) {
-        const keywords = d.rows.map((row: any) => [row[0], row[1]]);
+        const keywords = d.rows.map((row: any) => {
+          const keyword = Array.isArray(row) ? row[0] : (row.keyword || row.word || '');
+          const count = Array.isArray(row) ? row[1] : (row.count || row.weight || 1);
+          return [keyword, count];
+        });
         const newsMap = new Map();
         d.rows.forEach((row: any) => {
-          newsMap.set(row[0], { articles: row[2], totalCount: row[1] });
+          const keyword = Array.isArray(row) ? row[0] : (row.keyword || row.word || '');
+          const count = Array.isArray(row) ? row[1] : (row.count || row.weight || 1);
+          const articles = Array.isArray(row) ? row[2] : (row.links || row.articles || []);
+          newsMap.set(keyword, { articles, totalCount: count });
         });
         renderWordCloud(keywords, newsMap);
       }
@@ -2172,7 +2179,7 @@ const translations = ui[lang];
    * Render Industry WordCloud
    */
   let wcInitialized = false;
-  function renderWordCloud(list: any[], newsMap: Map<string, any[]>) {
+  function renderWordCloud(list: any[], newsMap: Map<string, any>) {
     const canvas = document.getElementById('industry-wordcloud') as HTMLCanvasElement;
     const newsPlaceholder = document.getElementById('news-placeholder');
     const newsList = document.getElementById('news-list');
@@ -2250,12 +2257,16 @@ const translations = ui[lang];
     newsList.innerHTML = '';
 
     articles.forEach((article, index) => {
-      const [title, rawDate, source, url] = article;
+      if (!article) return;
+      const title = Array.isArray(article) ? article[0] : (article.title || '');
+      const rawDate = Array.isArray(article) ? article[1] : (article.date || article.generated_at || '');
+      const source = Array.isArray(article) ? article[2] : (article.source || '');
+      const url = Array.isArray(article) ? article[3] : (article.source_url || article.url || '');
       
       // Format date: 2024-05-01 12:00 -> 24/05/01
       const formattedDate = String(rawDate).substring(2, 10).replace(/-/g, '/');
       
-      const sourceDisplay = source === 'UNKNOWN' ? 'Choice金融数据库' : source;
+      const sourceDisplay = source === 'UNKNOWN' ? 'Choice金融数据库' : (source || 'Choice金融数据库');
       
       const item = document.createElement('div');
       item.className = 'news-item';
