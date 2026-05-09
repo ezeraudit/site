@@ -1,21 +1,4 @@
 ---
-// Redirect logic: if logged in and not from internal site, go to search page
-const cookies = Astro.request.headers.get('cookie') || '';
-const isLoggedIn = cookies.includes('sb-msufgvqofnihylcnxyac-auth-token');
-
-const referer = Astro.request.headers.get('referer');
-let isInternal = false;
-if (referer) {
-  try {
-    const url = new URL(referer);
-    isInternal = url.hostname.includes('ezer.cc') || url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  } catch (e) {}
-}
-
-if (isLoggedIn && !isInternal) {
-  return Astro.redirect('/en/search/');
-}
-
 import Layout from "../../layouts/Layout.astro";
 import HeroHome from "../../components/HeroHome.astro";
 import TextMarquee from "../../components/TextMarquee.astro";
@@ -47,6 +30,25 @@ import logo12 from "../../assets/vercel_transparent.png";
   description="Ezer is an audit-grade financial-report analysis system. It connects data normalization, professional metric decomposition, industry context, external data, and audit-style review into one workflow."
   keywords="Ezer, Ezer Audit, financial analysis, financial audit, premium models, proprietary financial model, evidence review, investment research"
 >
+  <script is:inline>
+    (function() {
+      var cookies = document.cookie || '';
+      var isLoggedIn = cookies.indexOf('sb-msufgvqofnihylcnxyac-auth-token') !== -1;
+      if (isLoggedIn) {
+        var referer = document.referrer;
+        var isInternal = false;
+        if (referer) {
+          try {
+            var url = new URL(referer);
+            isInternal = url.hostname.indexOf('ezer.cc') !== -1 || url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+          } catch (e) {}
+        }
+        if (!isInternal) {
+          window.location.href = '/en/search/';
+        }
+      }
+    })();
+  </script>
   <HeroHome
     title="Through the numbers<br/>define the value"
     subtitle="Where the world decodes financial truth."

@@ -6,8 +6,8 @@ import AstroPWA from "@vite-pwa/astro";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://audit.ezer.cc/",
-  output: "server",
+  site: 'https://audit.ezer.cc/',
+  output: 'static',
   adapter: vercel({
     webAnalytics: { enabled: true },
   }),

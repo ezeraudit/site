@@ -7,28 +7,6 @@ import QuotaBanner from "../../components/QuotaBanner.astro";
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const translations = ui[lang];
-
-// Check parameters
-const code = Astro.url.searchParams.get('code');
-const year = Astro.url.searchParams.get('year');
-const period = Astro.url.searchParams.get('period');
-const preview = Astro.url.searchParams.get('preview');
-
-// 1. No parameters -> Redirect to search
-if (!code && !year && !period && !preview) {
-  return Astro.redirect(lang === 'zh' ? '/search/' : '/en/search/');
-}
-
-// 2. Auth check if not preview
-if (preview !== 'true') {
-  const cookies = Astro.request.headers.get('cookie') || '';
-  const hasSession = cookies.includes('sb-msufgvqofnihylcnxyac-auth-token');
-  
-  if (!hasSession) {
-    const loginUrl = `https://account.ezer.cc/${lang === 'en' ? 'en/' : ''}login/?redirect=${encodeURIComponent(Astro.url.href)}`;
-    return Astro.redirect(loginUrl);
-  }
-}
 ---
 
 <!-- Injected i18n for client-side script -->
@@ -167,6 +145,24 @@ if (preview !== 'true') {
                 <div class="section-label">{lang === 'zh' ? '深度分析 (B)' : 'Analyzer (B)'}</div>
                 <div class="scroll-wrapper-b">
                   <div class="text-output" id="text-b"></div>
+                </div>
+              </div>
+
+              <!-- I: Industry Information -->
+              <div class="thought-section section-i">
+                <div class="section-label">{t("check.industry")} (I)</div>
+                <div class="industry-grid hidden">
+                  <div class="wordcloud-container">
+                    <canvas id="industry-wordcloud"></canvas>
+                  </div>
+                  <div class="news-display">
+                    <div id="news-header" class="news-header hidden"></div>
+                    <div id="news-placeholder" class="news-placeholder">
+                      <div class="placeholder-icon">🔍</div>
+                      <p>{t("check.industry_placeholder")}</p>
+                    </div>
+                    <div id="news-list" class="news-list hidden"></div>
+                  </div>
                 </div>
               </div>
               
@@ -603,6 +599,10 @@ if (preview !== 'true') {
     display: none;
   }
 
+  .hidden {
+    display: none !important;
+  }
+
   .thought-content {
     padding: 1.2rem;
   }
@@ -677,6 +677,183 @@ if (preview !== 'true') {
       padding-top: 1.2rem;
       margin-top: 0.5rem;
       min-height: auto;
+  }
+
+  /* ── Section I (Industry) ── */
+  .section-i {
+    grid-column: 1 / 3;
+    border-top: 1px solid rgba(var(--rgb-brand-1), 0.15);
+    padding-top: 1.2rem;
+    margin-top: 0.5rem;
+  }
+
+  .industry-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1.5rem;
+    min-height: 500px;
+    margin-top: 0.5rem;
+  }
+
+  .wordcloud-container {
+    background: rgba(var(--rgb-brand-1), 0.02);
+    border: 1px solid rgba(var(--rgb-brand-1), 0.05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    height: 500px;
+    padding: 0;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+
+  #industry-wordcloud {
+    width: 100%;
+    max-width: 100%;
+    height: 460px;
+    transition: transform 0.3s ease;
+    display: block;
+  }
+
+  .news-display {
+    background: var(--color-bg-alt);
+    border: 1px solid rgba(var(--rgb-brand-1), 0.08);
+    border-radius: 12px;
+    padding: 1rem;
+    overflow-y: auto;
+    height: 500px;
+    box-sizing: border-box;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--rgb-brand-1), 0.2) transparent;
+  }
+
+  .news-display::-webkit-scrollbar { width: 4px; }
+  .news-display::-webkit-scrollbar-thumb { background: rgba(var(--rgb-brand-1), 0.2); border-radius: 4px; }
+
+  .news-header {
+    position: sticky;
+    top: -1rem;
+    margin: -1rem -1rem 0.8rem -1rem;
+    padding: 0.8rem 1rem;
+    background: var(--color-bg-alt);
+    border-bottom: 1px solid rgba(var(--rgb-brand-1), 0.12);
+    font-size: 0.85rem;
+    color: var(--color-text-alt);
+    z-index: 3;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .news-header b {
+    color: var(--color-brand-1);
+    font-weight: 700;
+  }
+
+  .news-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--color-text-alt);
+    opacity: 0.6;
+    text-align: center;
+  }
+
+  .placeholder-icon {
+    font-size: 2rem;
+  }
+
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  :global(.news-item) {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.4rem 0.2rem;
+    border-bottom: 1px solid rgba(var(--rgb-brand-1), 0.04);
+    animation: news-slide-in 0.3s ease-out forwards;
+    transition: background 0.2s;
+    border-radius: 6px;
+  }
+
+  :global(.news-item:hover) {
+    background: rgba(var(--rgb-brand-1), 0.03);
+  }
+
+  :global(.news-bullet) {
+    color: var(--color-brand-1);
+    font-size: 1rem;
+    line-height: 1.4;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  :global(.news-title-wrapper) {
+    flex: 1;
+    line-height: 1.5;
+  }
+
+  :global(.news-title) {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--color-text);
+    margin-right: 0.4rem;
+    line-height: 1.4;
+  }
+
+  :global(.news-date) {
+    font-size: 0.75rem;
+    color: var(--color-text-alt);
+    opacity: 0.7;
+    margin-right: 0.4rem;
+    font-family: var(--font-mono, monospace);
+  }
+
+  :global(.meta-pill) {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    background: #3c3c3c;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 400;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+    vertical-align: middle;
+    margin-bottom: 2px;
+  }
+
+  :global(.meta-pill:hover) {
+    background: #000;
+    color: #fff;
+  }
+
+  .meta-pill:hover {
+    background: var(--color-brand-1);
+    transform: translateY(-1px);
+  }
+
+  @keyframes news-slide-in {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    .industry-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 640px) {
@@ -1077,6 +1254,25 @@ if (preview !== 'true') {
   const period = params.get('period');
   const preview = params.get('preview');
 
+  let shouldRun = true;
+  // 1. No parameters -> Redirect to search
+  if (!code && !year && !period && !preview) {
+    window.location.href = lang === 'zh' ? '/search/' : '/en/search/';
+    shouldRun = false;
+  }
+
+  // 2. Auth check if not preview
+  if (shouldRun && preview !== 'true') {
+    const cookies = document.cookie || '';
+    const hasSession = cookies.includes('sb-msufgvqofnihylcnxyac-auth-token');
+    
+    if (!hasSession) {
+      const loginUrl = `https://account.ezer.cc/${lang === 'en' ? 'en/' : ''}login/?redirect=${encodeURIComponent(window.location.href)}`;
+      window.location.href = loginUrl;
+      shouldRun = false;
+    }
+  }
+
   // DOM refs
   const loadingEl = document.getElementById('loading-container')!;
   const errorEl = document.getElementById('error-container')!;
@@ -1171,11 +1367,11 @@ if (preview !== 'true') {
   class ChartManager {
     private charts: Record<string, any> = {};
 
-    private getOptions(title: string, suffix: string = '') {
+    private getOptions(suffix: string, isRate: boolean) {
       const isDark = document.documentElement.classList.contains('dark');
       const textColor = isDark ? '#94a3b8' : '#64748b';
       const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(100, 116, 139, 0.1)';
-      const brandColor = 'rgba(124, 58, 237, 1)'; // var(--color-brand-1) approximation
+      const growthSuffix = '%';
 
       return {
         responsive: true,
@@ -1185,15 +1381,23 @@ if (preview !== 'true') {
           tooltip: {
             mode: 'index',
             intersect: false,
-            filter: (item: any) => item.datasetIndex === 0,
+            itemSort: (a: any, b: any) => a.datasetIndex - b.datasetIndex,
+            usePointStyle: true,
+            boxWidth: 8,
+            boxHeight: 8,
             callbacks: {
               label: (context: any) => {
-                let label = context.dataset.label || '';
-                if (label) label += ': ';
-                if (context.parsed.y !== null) {
-                  label += context.parsed.y.toLocaleString() + suffix;
+                let l = context.dataset.label || '';
+                if (l) l += ': ';
+                const val = context.parsed.y;
+                if (val !== null) {
+                  if (context.datasetIndex === 0) {
+                    l += val.toLocaleString() + suffix;
+                  } else {
+                    l += (val >= 0 ? '+' : '') + val.toFixed(2) + growthSuffix;
+                  }
                 }
-                return label;
+                return l;
               }
             }
           }
@@ -1204,6 +1408,7 @@ if (preview !== 'true') {
             ticks: { color: textColor, font: { size: 10 } }
           },
           y: {
+            position: 'left',
             grid: { color: gridColor },
             ticks: { 
               color: textColor, 
@@ -1211,9 +1416,18 @@ if (preview !== 'true') {
               callback: (value: any) => {
                 if (suffix === '%') return value + '%';
                 if (value >= 100000000) return (value / 100000000).toFixed(1) + (lang === 'zh' ? '亿' : 'B');
-                if (value >= 10000) return (value / 10000).toFixed(0) + (lang === 'zh' ? '万' : '0k');
+                if (value >= 10000) return (value / 1000).toFixed(0) + 'k';
                 return value;
               }
+            }
+          },
+          y1: {
+            position: 'right',
+            grid: { display: false },
+            ticks: {
+              color: textColor,
+              font: { size: 10 },
+              callback: (value: any) => value + growthSuffix
             }
           }
         }
@@ -1224,15 +1438,12 @@ if (preview !== 'true') {
       const ctx = document.getElementById(id) as HTMLCanvasElement;
       if (!ctx) return;
 
-      // Reveal the parent container
       const container = ctx.closest('.chart-item') as HTMLElement;
       if (container) {
         container.style.display = 'flex';
-        // Minor delay to trigger CSS transition
         setTimeout(() => container.classList.add('is-visible'), 10);
       }
 
-      // Ensure the section itself is visible
       const sectionA = document.querySelector('.section-a');
       if (sectionA) sectionA.classList.remove('hidden');
 
@@ -1240,7 +1451,18 @@ if (preview !== 'true') {
         this.charts[id].destroy();
       }
 
-      // @ts-ignore (Chart.js via CDN)
+      const isRate = label.includes('Revenue') || label.includes('营业收入') || 
+                     label.includes('Net Profit') || label.includes('净利润');
+      
+      const growthData = data.map((d, i) => {
+        if (i === 0) return null;
+        const prev = data[i-1].value;
+        const curr = d.value;
+        if (prev === null || curr === null) return null;
+        return isRate ? (prev === 0 ? 0 : ((curr - prev) / Math.abs(prev)) * 100) : (curr - prev);
+      });
+
+      // @ts-ignore
       this.charts[id] = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -1252,23 +1474,28 @@ if (preview !== 'true') {
               backgroundColor: 'rgba(124, 58, 237, 0.2)',
               borderColor: 'rgba(124, 58, 237, 0.8)',
               borderWidth: 1,
-              order: 2,
               borderRadius: 4,
+              yAxisID: 'y',
+              order: 2,
+              pointStyle: 'rect',
             },
             {
-              label: lang === 'zh' ? '趋势' : 'Trend',
-              data: data.map(d => d.value),
+              label: lang === 'zh' ? (isRate ? '环比增长率' : '环比增长量') : (isRate ? 'Growth Rate' : 'Growth Amt'),
+              data: growthData,
               type: 'line',
-              borderColor: 'rgba(124, 58, 237, 1)',
+              borderColor: '#f59e0b',
+              backgroundColor: '#f59e0b',
               borderWidth: 2,
               pointRadius: 3,
-              pointBackgroundColor: 'rgba(124, 58, 237, 1)',
+              pointBackgroundColor: '#f59e0b',
               tension: 0.4,
-              order: 1
+              yAxisID: 'y1',
+              order: 1,
+              pointStyle: 'rect',
             }
           ]
         },
-        options: this.getOptions(label, suffix)
+        options: this.getOptions(suffix, isRate)
       });
     }
   }
@@ -1474,6 +1701,37 @@ if (preview !== 'true') {
     // Normalize producer name (A, B, C or normalizer, analyzer, auditor)
     const p = (producer || '').toUpperCase();
 
+    // Industry News Event (Section I)
+    if (event === 'i_industry_wordsea' || event === 'industry_wordsea' || event === 'i_industry_word_cloud' || (p === 'I' && (event === 'data' || event === 'wordsea' || event === 'i_industry_wordsea'))) {
+      const industryGrid = document.querySelector('.industry-grid');
+      if (industryGrid) industryGrid.classList.remove('hidden');
+      
+      let d = data || item.data || item;
+      if (typeof d === 'string') {
+        try {
+          d = JSON.parse(d);
+        } catch (e) {}
+      }
+      
+      const rows = d && (d.rows || d.items || d.list || (Array.isArray(d) ? d : null));
+      if (rows && Array.isArray(rows)) {
+        const keywords = rows.map((row: any) => {
+          const keyword = Array.isArray(row) ? row[0] : (row.keyword || row.word || '');
+          const count = Array.isArray(row) ? row[1] : (row.count || row.weight || 1);
+          return [keyword, count];
+        });
+        const newsMap = new Map();
+        rows.forEach((row: any) => {
+          const keyword = Array.isArray(row) ? row[0] : (row.keyword || row.word || '');
+          const count = Array.isArray(row) ? row[1] : (row.count || row.weight || 1);
+          const articles = Array.isArray(row) ? row[2] : (row.links || row.articles || []);
+          newsMap.set(keyword, { articles, totalCount: count });
+        });
+        renderWordCloud(keywords, newsMap);
+      }
+      return;
+    }
+
     if ((p === 'A' || p === 'NORMALIZER') && (event === 'a_normalized' || event === 'data')) {
       const d = data || item.data; // Handle if data is directly in item or nested
       if (!d) return;
@@ -1615,6 +1873,7 @@ if (preview !== 'true') {
         if (textToType) await typeText(content, textToType, 15);
       }
     }
+
 
     if (event === 'final_summary' || event === 'summary') {
       if (summaryText.classList.contains('is-placeholder')) {
@@ -1760,12 +2019,20 @@ if (preview !== 'true') {
         
         const taskData = await taskResp.json();
         const taskId = taskData.task_id;
-        const rawStreamUrl = taskData.stream_url;
-        const rawResultUrl = taskData.result_url;
+        
+        const apiBase = new URL(api).origin;
+        function toBackendUrl(rawUrl?: string | null) {
+          if (!rawUrl) return null;
+          if (rawUrl.startsWith('http')) return rawUrl;
+          return `${apiBase}${rawUrl}`;
+        }
 
-        if (!rawStreamUrl) throw new Error('No stream_url from backend');
-        const streamUrl = rawStreamUrl.startsWith('http') ? rawStreamUrl : `https://api.ezer.cc${rawStreamUrl}`;
-        const resultUrl = rawResultUrl ? (rawResultUrl.startsWith('http') ? rawResultUrl : `https://api.ezer.cc${rawResultUrl}`) : null;
+        const streamUrl = toBackendUrl(taskData.stream_url);
+        const resultUrl = toBackendUrl(taskData.result_url);
+        const resultBrUrl = toBackendUrl(taskData.result_br_url);
+        const resultBrRawUrl = toBackendUrl(taskData.result_br_raw_url);
+
+        if (!streamUrl) throw new Error('No stream_url from backend');
 
         // Step 2: Stream from backend with a 5-minute initial connection timeout
         const controller = new AbortController();
@@ -1811,18 +2078,17 @@ if (preview !== 'true') {
 
         clearTimeout(timeoutId);
 
-        // Step 3: Fetch Final Result if available
-        if (resultUrl && collectedData.length > 0) {
-            console.log('Fetching final result for data verification...');
+        // Step 3: Fetch Final Result from auto-decoding Brotli endpoint if available, otherwise fallback to resultUrl
+        const finalFetchUrl = resultBrUrl || resultUrl;
+        if (finalFetchUrl && collectedData.length > 0) {
+            console.log('Fetching final result for data verification from:', finalFetchUrl);
             try {
-                const finalResp = await fetch(resultUrl, {
+                const finalResp = await fetch(finalFetchUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (finalResp.ok) {
                     const finalData = await finalResp.json();
-                    // Process final result if needed, e.g., to backfill missing fields
                     console.log('Final Result Data:', finalData);
-                    // Standard backend format is to put everything in final_payload
                     const payload = finalData.final_payload;
                     if (payload) {
                         // Optionally merge or sync with collectedData
@@ -1836,11 +2102,71 @@ if (preview !== 'true') {
         // Step 4: Backfill Cache only if successfully completed
         if (isSuccessfullyCompleted && collectedData.length > 0) {
             console.log('Analysis complete and verified. Backfilling cache...');
-            fetch('/api/check', {
+            
+            const backfillCache = async () => {
+              if (resultBrRawUrl) {
+                try {
+                  console.log('Fetching raw Brotli file for cache backfill:', resultBrRawUrl);
+                  const brResp = await fetch(resultBrRawUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (brResp.ok) {
+                    const arrayBuffer = await brResp.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    let binary = '';
+                    const len = uint8Array.byteLength;
+                    for (let i = 0; i < len; i++) {
+                      binary += String.fromCharCode(uint8Array[i]);
+                    }
+                    const base64Data = btoa(binary);
+                    
+                    console.log('Storing raw Brotli Base64 in Redis cache...');
+                    const postResp = await fetch('/api/check', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ cacheKey, data: base64Data })
+                    });
+                    console.log('Brotli cache backfill response code:', postResp.status);
+                    return;
+                  }
+                } catch (brErr) {
+                  console.warn('Failed to fetch raw Brotli file, falling back to resultUrl or collectedData:', brErr);
+                }
+              }
+              
+              // Fallback 1: Plain result JSON
+              if (resultUrl) {
+                try {
+                  console.log('Falling back: Fetching plain result JSON for cache backfill...');
+                  const resResp = await fetch(resultUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (resResp.ok) {
+                    const resData = await resResp.json();
+                    await fetch('/api/check', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ cacheKey, data: resData })
+                    });
+                    console.log('Plain JSON cache backfill successful');
+                    return;
+                  }
+                } catch (resErr) {
+                  console.warn('Failed to fetch plain result JSON for cache backfill:', resErr);
+                }
+              }
+              
+              // Fallback 2: Stream events array
+              console.log('Falling back: Storing collectedData in cache...');
+              await fetch('/api/check', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cacheKey, data: collectedData })
-            }).catch(e => console.error('Cache backfill failed', e));
+              });
+              console.log('collectedData cache backfill successful');
+            };
+            
+            backfillCache().catch(err => console.error('Cache backfill failed:', err));
         }
       }
     } finally {
@@ -1855,6 +2181,133 @@ if (preview !== 'true') {
     }
   }
 }
+
+  /**
+   * Render Industry WordCloud
+   */
+  let wcInitialized = false;
+  function renderWordCloud(list: any[], newsMap: Map<string, any>) {
+    const canvas = document.getElementById('industry-wordcloud') as HTMLCanvasElement;
+    const newsPlaceholder = document.getElementById('news-placeholder');
+    const newsList = document.getElementById('news-list');
+
+    if (!canvas) return;
+
+    // Load WordCloud2.js if not already loaded
+    if (!wcInitialized) {
+      const script = document.createElement('script');
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js";
+      script.onload = () => {
+        wcInitialized = true;
+        doRender();
+      };
+      document.head.appendChild(script);
+    } else {
+      doRender();
+    }
+
+    function doRender() {
+      // Calculate responsive sizing
+      const containerWidth = (canvas.parentElement?.clientWidth || 500) - 40;
+      canvas.width = containerWidth;
+      canvas.height = 460;
+
+      const maxCount = list.length > 0 ? Math.max(...list.map(i => i[1])) : 1;
+      console.log('Rendering WordCloud with maxCount:', maxCount, 'List length:', list.length);
+
+      // @ts-ignore
+      WordCloud(canvas, {
+        list: list.slice(0, 100),
+        gridSize: 8,
+        weightFactor: function (size: number) {
+          return size * 0.6 + 12;
+        },
+        fontWeight: 300,
+        fontFamily: 'Outfit, "PingFang SC", sans-serif',
+        minSize: 10,
+        drawOutOfBound: false,
+        ellipticity: 1,
+        color: function() {
+          const colors = ['#967041ff', '#2f804eff', '#7649c0ff', '#b22f2fff', '#4d70ceff', '#98487fff'];
+          return colors[Math.floor(Math.random() * colors.length)];
+        },
+        rotateRatio: 0,
+        backgroundColor: 'transparent',
+        click: (item: any) => {
+          const keyword = item[0];
+          const data = newsMap.get(keyword);
+          if (data) {
+            renderNews(data.articles, keyword, data.totalCount);
+          }
+        }
+      });
+    }
+  }
+
+  function renderNews(articles: any[], keyword: string, totalCount?: number) {
+    const newsPlaceholder = document.getElementById('news-placeholder');
+    const newsList = document.getElementById('news-list');
+    const newsHeader = document.getElementById('news-header');
+    if (!newsPlaceholder || !newsList || !newsHeader) return;
+
+    newsPlaceholder.classList.add('hidden');
+    newsList.classList.remove('hidden');
+    newsHeader.classList.remove('hidden');
+
+    const count = totalCount !== undefined ? totalCount : articles.length;
+    if (lang === 'zh') {
+      newsHeader.innerHTML = `共找到 <b>${count}</b> 条与 <span style="color:var(--color-brand-1);font-weight:600;">${keyword}</span> 相关的行业资讯`;
+    } else {
+      newsHeader.innerHTML = `Found <b>${count}</b> news articles related to <span style="color:var(--color-brand-1);font-weight:600;">${keyword}</span>`;
+    }
+
+    newsList.innerHTML = '';
+
+    const arr = Array.isArray(articles) ? articles : [];
+    arr.forEach((article, index) => {
+      if (!article) return;
+      
+      let itemObj = article;
+      if (typeof itemObj === 'string') {
+        try {
+          itemObj = JSON.parse(itemObj);
+        } catch (e) {
+          itemObj = [article, '', 'Choice金融数据库', ''];
+        }
+      }
+      
+      const title = Array.isArray(itemObj) ? itemObj[0] : (itemObj.title || '');
+      const rawDate = Array.isArray(itemObj) ? itemObj[1] : (itemObj.date || itemObj.generated_at || '');
+      const source = Array.isArray(itemObj) ? itemObj[2] : (itemObj.source || '');
+      const url = Array.isArray(itemObj) ? itemObj[3] : (itemObj.source_url || itemObj.url || '');
+      
+      // Format date: 2024-05-01 12:00 -> 24/05/01
+      const formattedDate = String(rawDate).substring(2, 10).replace(/-/g, '/');
+      
+      const sourceDisplay = source === 'UNKNOWN' ? 'Choice金融数据库' : (source || 'Choice金融数据库');
+      
+      const item = document.createElement('div');
+      item.className = 'news-item';
+      item.style.animationDelay = `${index * 0.05}s`;
+
+      const linkHtml = url 
+        ? `<a href="${url}" target="_blank" rel="noreferrer" class="meta-pill source">${sourceDisplay}</a>`
+        : `<span class="meta-pill source">${sourceDisplay}</span>`;
+
+      item.innerHTML = `
+        <span class="news-bullet">•</span>
+        <div class="news-title-wrapper">
+          <span class="news-title">${title}</span>
+          <span class="news-date">${formattedDate}</span>
+          ${linkHtml}
+        </div>
+      `;
+      newsList.appendChild(item);
+    });
+    
+    // Scroll to top of list
+    newsList.parentElement?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   /**
    * Helper to handle stream decoding and line processing
@@ -1977,27 +2430,31 @@ if (preview !== 'true') {
 
   // ── Scroll Behavior for Area B/C (Desktop) ──
   const setupAreaScroll = () => {
-    const wrappers = document.querySelectorAll('.scroll-wrapper-b');
+    const wrappers = document.querySelectorAll('.scroll-wrapper-b, .news-display');
     wrappers.forEach(wrapper => {
       wrapper.addEventListener('wheel', (e: any) => {
         if (window.innerWidth > 640) {
-          const { scrollTop, scrollHeight, clientHeight } = wrapper;
-          const isAtTop = scrollTop === 0;
-          const isAtBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 2;
+          const el = e.currentTarget as HTMLElement;
+          const isScrollable = el.scrollHeight > el.clientHeight;
+          
+          if (!isScrollable) return;
 
-          const scrollingDown = e.deltaY > 0;
-          const scrollingUp = e.deltaY < 0;
+          const isAtTop = el.scrollTop <= 0;
+          const isAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+          
+          // If scrolling down at the bottom or up at the top, let the page scroll
+          if (e.deltaY > 0 && isAtBottom) return;
+          if (e.deltaY < 0 && isAtTop) return;
 
-          // If we are NOT at the boundary in the direction of scrolling, 
-          // stop propagation to prevent Lenis from scrolling the page.
-          if ((scrollingDown && !isAtBottom) || (scrollingUp && !isAtTop)) {
-            e.stopPropagation();
-          }
+          // Otherwise, stop propagation to isolate scroll to the panel
+          e.stopPropagation();
         }
       }, { passive: true });
     });
   };
   setupAreaScroll();
 
-  main();
+  if (shouldRun) {
+    main();
+  }
 </script>

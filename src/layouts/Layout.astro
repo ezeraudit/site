@@ -129,13 +129,20 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/en' || Ast
 
   // PWA registration
   import { registerSW } from 'virtual:pwa-register';
-  registerSW({ 
-    immediate: true,
-    onRegistered(r) {
-      console.log('SW Registered:', r);
-    },
-    onRegisterError(error) {
-      console.error('SW Registration Error:', error);
-    }
-  });
+
+  // Only register Service Worker on the main production domain to avoid 404s and caching issues on dev/preview environments
+  const isProdDomain = window.location.hostname === 'audit.ezer.cc' || 
+    (import.meta.env.PROD && !window.location.hostname.includes('audev.ezer.cc') && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1'));
+
+  if (isProdDomain) {
+    registerSW({ 
+      immediate: true,
+      onRegistered(r) {
+        console.log('SW Registered:', r);
+      },
+      onRegisterError(error) {
+        console.error('SW Registration Error:', error);
+      }
+    });
+  }
 </script>

@@ -1,7 +1,10 @@
+export const prerender = false;
+
 import type { APIRoute } from 'astro';
 import { Redis } from '@upstash/redis';
+import { brotliDecompressSync } from 'zlib';
 import nvdaData from '../../data/nvda_oq_2026fy_en_result_latest.json';
-import zhongjiData from '../../data/zhongji_300308_sz_2026q1_zh_result_latest.json';
+import zhongjiData from '../../data/innolight_300308_sz_2026q1_stream_with_i.frontend.json';
 
 const kvRestUrl = import.meta.env.UPSTASH_REDIS_KV_REST_API_URL;
 const kvRestToken = import.meta.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
@@ -13,9 +16,25 @@ const kv = (kvRestUrl && kvRestToken)
   ? new Redis({ url: kvRestUrl, token: kvRestToken })
   : null;
 
-const BACKEND_API = 'https://api.ezer.cc/api/tasks';
+const API_BASE = (import.meta.env.EZER_AUDIT_API_BASE || "https://api.ezer.cc").replace(/\/$/, "");
+const BACKEND_API = `${API_BASE}/api/tasks`;
 const BACKEND_TOKEN = import.meta.env.BACKEND_TOKEN;
 const CACHE_EXPIRY = 30 * 24 * 60 * 60; // 30 days in seconds
+
+/**
+ * Helper to decompress Brotli data from a Base64 string
+ */
+function decompressBrotliBase64(base64Str: string): any {
+  try {
+    const buffer = Buffer.from(base64Str, 'base64');
+    const decompressed = brotliDecompressSync(buffer);
+    const jsonStr = decompressed.toString('utf8');
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    console.error('[Brotli Decompression Error]', err);
+    return null;
+  }
+}
 
 /**
  * Helper to get user via Supabase Auth
@@ -216,14 +235,43 @@ export const GET: APIRoute = async ({ url, request }) => {
         [CACHE_EXPIRY]
       );
 
-      // Upstash eval returns the raw string from Redis; parse it if it's not already an object
-      if (typeof cachedData === 'string') {
-        try { cachedData = JSON.parse(cachedData); } catch (e) { }
-      }
-
       if (cachedData) {
         console.log(`[Cache Hit & Extended] ${cacheKey}`);
-        return createDelayedStream(cachedData);
+        
+        let streamEvents = cachedData;
+        
+        // Handle decompression or parsing depending on format
+        if (typeof cachedData === 'string') {
+          try {
+            // Try parsing as plain JSON first
+            const parsed = JSON.parse(cachedData);
+            if (Array.isArray(parsed)) {
+              streamEvents = parsed;
+            } else if (parsed && Array.isArray(parsed.stream)) {
+              streamEvents = parsed.stream;
+            } else {
+              // Not standard array, try treating it as Brotli Base64
+              const decompressed = decompressBrotliBase64(cachedData);
+              if (decompressed) {
+                streamEvents = Array.isArray(decompressed) ? decompressed : (decompressed.stream || decompressed);
+              }
+            }
+          } catch (e) {
+            // Parsing as JSON failed, so treat as Brotli Base64
+            const decompressed = decompressBrotliBase64(cachedData);
+            if (decompressed) {
+              streamEvents = Array.isArray(decompressed) ? decompressed : (decompressed.stream || decompressed);
+            }
+          }
+        } else if (cachedData && Array.isArray(cachedData.stream)) {
+          streamEvents = cachedData.stream;
+        }
+
+        if (Array.isArray(streamEvents)) {
+          return createDelayedStream(streamEvents);
+        } else {
+          console.warn(`[Cache Corrupted or Invalid Format] ${cacheKey}`);
+        }
       }
     }
 
@@ -313,6 +361,11 @@ function createDelayedStream(data: any[]) {
     return p === 'B' || p === 'ANALYZER';
   });
 
+  const groupI = data.filter(item => {
+    const p = (item.producer || '').toUpperCase();
+    return p === 'I' || p === 'INDUSTRY';
+  });
+
   const groupC = data.filter(item => {
     const p = (item.producer || '').toUpperCase();
     const e = item.event || '';
@@ -326,16 +379,21 @@ function createDelayedStream(data: any[]) {
         await new Promise(r => setTimeout(r, delay));
       };
 
-      for (const item of groupA) await send(item, 2000);
+      for (const item of groupA) await send(item, 500);
 
       if (groupB.length > 0) {
-        await new Promise(r => setTimeout(r, 10000));
-        for (const item of groupB) await send(item, 4000);
+        await new Promise(r => setTimeout(r, 1000));
+        for (const item of groupB) await send(item, 1000);
+      }
+
+      if (groupI.length > 0) {
+        await new Promise(r => setTimeout(r, 1000));
+        for (const item of groupI) await send(item, 1000);
       }
 
       if (groupC.length > 0) {
-        await new Promise(r => setTimeout(r, 10000));
-        for (const item of groupC) await send(item, 4000);
+        await new Promise(r => setTimeout(r, 1000));
+        for (const item of groupC) await send(item, 1000);
       }
 
       controller.close();

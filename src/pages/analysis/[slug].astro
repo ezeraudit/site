@@ -1,8 +1,24 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { Redis } from '@upstash/redis';
+import { brotliDecompressSync } from 'zlib';
 import nvdaData from "../../data/nvda_oq_2026fy_en_result_latest.json";
 import zhongjiData from "../../data/zhongji_300308_sz_2026q1_zh_result_latest.json";
+
+/**
+ * Helper to decompress Brotli data from a Base64 string
+ */
+function decompressBrotliBase64(base64Str: string): any {
+  try {
+    const buffer = Buffer.from(base64Str, 'base64');
+    const decompressed = brotliDecompressSync(buffer);
+    const jsonStr = decompressed.toString('utf8');
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    console.error('[Brotli Decompression Error in [slug]]', err);
+    return null;
+  }
+}
 
 export const prerender = false; // SSR mode
 
@@ -35,12 +51,40 @@ if (slug === 'preview') {
   
   const redisPeriod = period === 'FY' ? 'full' : period;
   const cacheKey = `cache:check:${code}:${year}:${redisPeriod}:${lang}`;
-  data = kv ? await kv.get<any[] | null>(cacheKey) : null;
+  let rawData = kv ? await kv.get<any>(cacheKey) : null;
 
   // Fallback for historical 'zh-CN' keys during transition
-  if (!data && lang === 'zh' && kv) {
+  if (!rawData && lang === 'zh' && kv) {
     const fallbackKey = `cache:check:${code}:${year}:${redisPeriod}:zh-CN`;
-    data = await kv.get<any[] | null>(fallbackKey);
+    rawData = await kv.get<any>(fallbackKey);
+  }
+
+  // Handle parsing/decompression
+  if (rawData) {
+    if (typeof rawData === 'string') {
+      try {
+        const parsed = JSON.parse(rawData);
+        if (Array.isArray(parsed)) {
+          data = parsed;
+        } else if (parsed && Array.isArray(parsed.stream)) {
+          data = parsed.stream;
+        } else {
+          const decompressed = decompressBrotliBase64(rawData);
+          if (decompressed) {
+            data = Array.isArray(decompressed) ? decompressed : (decompressed.stream || decompressed);
+          }
+        }
+      } catch (e) {
+        const decompressed = decompressBrotliBase64(rawData);
+        if (decompressed) {
+          data = Array.isArray(decompressed) ? decompressed : (decompressed.stream || decompressed);
+        }
+      }
+    } else if (Array.isArray(rawData)) {
+      data = rawData;
+    } else if (rawData && Array.isArray(rawData.stream)) {
+      data = rawData.stream;
+    }
   }
 }
 
